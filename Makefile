@@ -31,7 +31,6 @@ tools: $(patsubst %,$(GOTOOLS_BINDIR)/%, $(GOTOOLS))
 unit-tests:
 	go test ./...
 
-
 gotool.%:
 	$(eval TOOL = ${subst gotool.,,${@}})
 	@echo "Building ${go.fqp.${TOOL}} -> $(TOOL)"
