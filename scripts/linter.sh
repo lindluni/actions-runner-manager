@@ -21,7 +21,7 @@ if [ -n "$OUTPUT" ]; then
 fi
 
 echo "Checking with gofumpt"
-OUTPUT="$(gofumpt -l -s "${source_dirs[@]}")"
+OUTPUT="$(gofumpt -l "${source_dirs[@]}")"
 OUTPUT="$(filterExcludedAndGeneratedFiles "$OUTPUT")"
 if [ -n "$OUTPUT" ]; then
     echo "The following files contain gofumpt errors"
