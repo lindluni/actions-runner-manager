@@ -4,6 +4,8 @@
 // TODO: Implement better logging as a library?
 // TODO: Implement pagination for github calls
 // TODO: Add License and headers to all files
+// TODO: Improve logging context
+// TODO: Reimplement GETS as POSTS, this will require creating structs to marshal the body into
 package main
 
 import (
@@ -48,16 +50,21 @@ type response struct {
 	Message    string
 }
 
-func verifyMaintainership(token, team string) bool {
+func createClient(token string) *github.Client {
 	log.Info("Creating user GitHub client")
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
 	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
+	return github.NewClient(tc)
+}
+
+func verifyMaintainership(createClient func(token string) *github.Client, token, team string) bool {
+	client := createClient(token)
 
 	log.Info("Retrieving authorized user metadata")
+	ctx := context.Background()
 	user, _, err := client.Users.Get(ctx, "")
 	if err != nil {
 		log.Error("Failed retrieving user metadata")
@@ -68,12 +75,9 @@ func verifyMaintainership(token, team string) bool {
 		if resp.StatusCode == http.StatusNotFound {
 			log.Fatalf("Unable to locate team %s", team)
 		}
-		log.Panic(err)
+		log.Error(err)
 	}
-	if membership.GetRole() == "maintainer" {
-		return true
-	}
-	return false
+	return membership.GetRole() == "maintainer"
 }
 
 func (m *manager) retrieveGroupID(name string) (*int64, error) {
@@ -98,7 +102,7 @@ func (m *manager) doGroupAdd(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	isMaintainer := verifyMaintainership(os.Getenv("GITHUB_PAT"), team)
+	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
 	if !isMaintainer {
 		panic("User is not a maintainer of the team")
 	}
@@ -129,7 +133,7 @@ func (m *manager) doGroupDelete(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	isMaintainer := verifyMaintainership(os.Getenv("GITHUB_PAT"), team)
+	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
 	if !isMaintainer {
 		panic("User is not a maintainer of the team")
 	}
@@ -162,7 +166,7 @@ func (m *manager) doGroupList(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	isMaintainer := verifyMaintainership(os.Getenv("GITHUB_PAT"), team)
+	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
 	if !isMaintainer {
 		panic("User is not a maintainer of the team")
 	}
@@ -227,7 +231,7 @@ func (m *manager) doTokenRegister(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	isMaintainer := verifyMaintainership(os.Getenv("GITHUB_PAT"), team)
+	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
 	if !isMaintainer {
 		panic("User is not a maintainer of the team")
 	}
@@ -259,7 +263,7 @@ func (m *manager) doTokenRemove(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	isMaintainer := verifyMaintainership(os.Getenv("GITHUB_PAT"), team)
+	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
 	if !isMaintainer {
 		panic("User is not a maintainer of the team")
 	}
@@ -299,7 +303,7 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 
 	repoNames := strings.Split(reposParam[0], ",")
 
-	isMaintainer := verifyMaintainership(os.Getenv("GITHUB_PAT"), team)
+	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
 	if !isMaintainer {
 		panic("User is not a maintainer of the team")
 	}
@@ -360,7 +364,7 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 
 	repoNames := strings.Split(reposParam[0], ",")
 
-	isMaintainer := verifyMaintainership(os.Getenv("GITHUB_PAT"), team)
+	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
 	if !isMaintainer {
 		panic("User is not a maintainer of the team")
 	}
@@ -421,7 +425,7 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 
 	repoNames := strings.Split(reposParam[0], ",")
 
-	isMaintainer := verifyMaintainership(os.Getenv("GITHUB_PAT"), team)
+	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
 	if !isMaintainer {
 		panic("User is not a maintainer of the team")
 	}
