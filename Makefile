@@ -21,11 +21,16 @@ profile:
 clean:
 	rm -rf c.out
 
+.PHONY: tests
+tests: unit-tests
+
 .PHONY: tools
 tools: $(patsubst %,$(GOTOOLS_BINDIR)/%, $(GOTOOLS))
 
 .PHONY: unit-tests
+unit-tests:
 	go test ./...
+
 
 gotool.%:
 	$(eval TOOL = ${subst gotool.,,${@}})
