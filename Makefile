@@ -1,6 +1,6 @@
 GOTOOLS = counterfeiter gofumpt goimports golint staticcheck
 BUILD_DIR ?= build
-GOTOOLS_BINDIR ?= $(shell go env GOPATH)/bin
+GOTOOLS_BINDIR ?= $(shell go env GOBIN)
 
 go.fqp.counterfeiter := github.com/maxbrunsfeld/counterfeiter/v6
 go.fqp.gofumpt       := mvdan.cc/gofumpt
