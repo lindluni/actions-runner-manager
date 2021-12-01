@@ -1,5 +1,9 @@
 //go:build tools
 
+/**
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package tools
 
 import (

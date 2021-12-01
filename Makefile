@@ -1,3 +1,7 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
 GOTOOLS = counterfeiter gofumpt goimports golint staticcheck
 BUILD_DIR ?= build
 GOTOOLS_BINDIR ?= $(shell go env GOBIN)

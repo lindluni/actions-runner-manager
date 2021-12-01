@@ -1,3 +1,7 @@
+/**
+SPDX-License-Identifier: Apache-2.0
+*/
+
 // TODO: Do not panic in handlers
 // TODO: Allow file logging or stdout logging or both via config
 // TODO: Figure out a way to pull the org from the app or via config
