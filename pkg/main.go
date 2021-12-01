@@ -6,6 +6,8 @@
 // TODO: Add License and headers to all files
 // TODO: Improve logging context
 // TODO: Reimplement GETS as POSTS, this will require creating structs to marshal the body into
+// TODO: Add CODEOWNERS and enforce it
+// TODO: Write errors as response objects, not http calls
 package main
 
 import (
@@ -122,7 +124,16 @@ func (m *manager) doGroupAdd(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, _ = fmt.Fprintf(w, "Runner group created successfully: %s", group.GetName())
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(&response{
+		StatusCode: http.StatusOK,
+		Message:    fmt.Sprintf("Runner group created successfully: %s", group.GetName()),
+	})
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func (m *manager) doGroupDelete(w http.ResponseWriter, req *http.Request) {
@@ -150,7 +161,15 @@ func (m *manager) doGroupDelete(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, _ = fmt.Fprintf(w, "Runner group deleted successfully: %s", team)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(&response{
+		StatusCode: http.StatusOK,
+		Message:    fmt.Sprintf("Runner group deleted successfully: %s", team),
+	})
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 type listResponse struct {
@@ -209,15 +228,9 @@ func (m *manager) doGroupList(w http.ResponseWriter, req *http.Request) {
 		listResponse.Runners = []string{}
 	}
 
-	response, err := json.Marshal(listResponse)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(response)
+	err = json.NewEncoder(w).Encode(listResponse)
 	if err != nil {
 		log.Error(err)
 	}
@@ -242,14 +255,9 @@ func (m *manager) doTokenRegister(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	response, err := json.Marshal(token)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(response)
+	err = json.NewEncoder(w).Encode(token)
 	if err != nil {
 		log.Error(err)
 	}
@@ -274,14 +282,9 @@ func (m *manager) doTokenRemove(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	response, err := json.Marshal(token)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(response)
+	err = json.NewEncoder(w).Encode(token)
 	if err != nil {
 		log.Error(err)
 	}
@@ -342,7 +345,13 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	_, err = fmt.Fprintf(w, "Successfully added repositories to runner group")
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(&response{
+		StatusCode: http.StatusOK,
+		Message:    "Successfully added repositories to runner group",
+	})
 	if err != nil {
 		log.Error(err)
 	}
@@ -397,13 +406,19 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 	}
 
 	for name, repoID := range repoIDs {
-		fmt.Println("Removing repo " + name + " to runner group " + team)
+		log.Infof("Removing repo %s from runner group %s", name, team)
 		_, err = m.actionsClient.RemoveRepositoryAccessRunnerGroup(ctx, org, *id, repoID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	_, err = fmt.Fprintf(w, "Successfully removed repositories to runner group")
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(&response{
+		StatusCode: http.StatusOK,
+		Message:    "Successfully removed repositories from runner group",
+	})
 	if err != nil {
 		log.Error(err)
 	}
