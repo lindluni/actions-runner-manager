@@ -43,6 +43,11 @@ type manager struct {
 	actionsClient actionsClient
 }
 
+type response struct {
+	StatusCode int
+	Message    string
+}
+
 func verifyMaintainership(token, team string) bool {
 	log.Info("Creating user GitHub client")
 	ctx := context.Background()
@@ -205,8 +210,13 @@ func (m *manager) doGroupList(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(string(response))
-	_, _ = fmt.Fprintf(w, string(response))
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func (m *manager) doTokenRegister(w http.ResponseWriter, req *http.Request) {
@@ -233,7 +243,12 @@ func (m *manager) doTokenRegister(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, _ = fmt.Fprintf(w, string(response))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func (m *manager) doTokenRemove(w http.ResponseWriter, req *http.Request) {
@@ -260,7 +275,12 @@ func (m *manager) doTokenRemove(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, _ = fmt.Fprintf(w, string(response))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
@@ -320,7 +340,7 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 	}
 	_, err = fmt.Fprintf(w, "Successfully added repositories to runner group")
 	if err != nil {
-
+		log.Error(err)
 	}
 }
 
@@ -381,7 +401,7 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 	}
 	_, err = fmt.Fprintf(w, "Successfully removed repositories to runner group")
 	if err != nil {
-
+		log.Error(err)
 	}
 }
 
@@ -440,9 +460,14 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	_, err = fmt.Fprintf(w, "Successfully replaced all repositories in runner group")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(&response{
+		StatusCode: http.StatusOK,
+		Message:    "Successfully replaced all repositories in runner group",
+	})
 	if err != nil {
-
+		log.Error(err)
 	}
 }
 
@@ -451,7 +476,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	f, err := os.OpenFile("logs/server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := os.OpenFile("logs/server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
 	if err != nil {
 		panic(err)
 	}

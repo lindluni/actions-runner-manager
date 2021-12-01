@@ -9,19 +9,22 @@ go.fqp.golint        := golang.org/x/lint/golint
 go.fqp.staticcheck   := honnef.co/go/tools/cmd/staticcheck
 
 .PHONY: lint
-lint:
+lint: tools
 	./scripts/linter.sh
 
 .PHONY: profile
 profile:
-	go test -coverprofile=c.out
+	go test -coverprofile=c.out ./...
 	go tool cover -html=c.out
+
+.PHONY: clean
+clean:
+	rm -rf c.out
 
 .PHONY: tools
 tools: $(patsubst %,$(GOTOOLS_BINDIR)/%, $(GOTOOLS))
 
 .PHONY: unit-tests
-unit-tests:
 	go test ./...
 
 gotool.%:
