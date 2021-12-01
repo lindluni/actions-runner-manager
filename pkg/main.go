@@ -1,32 +1,50 @@
+// TODO: Do not panic in handlers
+// TODO: Allow file logging or stdout logging or both via config
+// TODO: Figure out a way to pull the org from the app or via config
+// TODO: Implement better logging as a library?
+// TODO: Implement pagination for github calls
+// TODO: Add License and headers to all files
 package main
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
-	"github.com/google/go-github/v39/github"
+	"github.com/google/go-github/v41/github"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
 
 const org = "department-of-veterans-affairs"
 
-var appClient *github.Client
+//go:generate counterfeiter -generate
 
-func init() {
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 145597, 20164413, "key.pem")
-	if err != nil {
-		panic("Failed creating app authentication")
-	}
+//counterfeiter:generate -o mocks/actions_client.go -fake-name ActionsClient . actionsClient
+type actionsClient interface {
+	AddRepositoryAccessRunnerGroup(ctx context.Context, org string, groupID, repoID int64) (*github.Response, error)
+	CreateOrganizationRemoveToken(ctx context.Context, owner string) (*github.RemoveToken, *github.Response, error)
+	CreateOrganizationRunnerGroup(ctx context.Context, org string, createReq github.CreateRunnerGroupRequest) (*github.RunnerGroup, *github.Response, error)
+	CreateOrganizationRegistrationToken(ctx context.Context, owner string) (*github.RegistrationToken, *github.Response, error)
+	DeleteOrganizationRunnerGroup(ctx context.Context, org string, groupID int64) (*github.Response, error)
+	ListOrganizationRunnerGroups(ctx context.Context, org string, opts *github.ListOptions) (*github.RunnerGroups, *github.Response, error)
+	ListRepositoryAccessRunnerGroup(ctx context.Context, org string, groupID int64, opts *github.ListOptions) (*github.ListRepositories, *github.Response, error)
+	ListRunnerGroupRunners(ctx context.Context, org string, groupID int64, opts *github.ListOptions) (*github.Runners, *github.Response, error)
+	RemoveRepositoryAccessRunnerGroup(ctx context.Context, org string, groupID, repoID int64) (*github.Response, error)
+	SetRepositoryAccessRunnerGroup(ctx context.Context, org string, groupID int64, ids github.SetRepoAccessRunnerGroupRequest) (*github.Response, error)
+}
 
-	appClient = github.NewClient(&http.Client{Transport: itr})
+type manager struct {
+	actionsClient actionsClient
 }
 
 func verifyMaintainership(token, team string) bool {
+	log.Info("Creating user GitHub client")
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
@@ -34,17 +52,18 @@ func verifyMaintainership(token, team string) bool {
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
+	log.Info("Retrieving authorized user metadata")
 	user, _, err := client.Users.Get(ctx, "")
 	if err != nil {
-		panic(err)
+		log.Error("Failed retrieving user metadata")
 	}
 
 	membership, resp, err := client.Teams.GetTeamMembershipBySlug(ctx, org, team, user.GetLogin())
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
-			panic(fmt.Errorf("team not found"))
+			log.Fatalf("Unable to locate team %s", team)
 		}
-		panic(err)
+		log.Panic(err)
 	}
 	if membership.GetRole() == "maintainer" {
 		return true
@@ -52,21 +71,21 @@ func verifyMaintainership(token, team string) bool {
 	return false
 }
 
-func retrieveGroupID(client *github.Client, name string) (*int64, error) {
+func (m *manager) retrieveGroupID(name string) (*int64, error) {
 	ctx := context.Background()
-	groups, _, err := client.Actions.ListOrganizationRunnerGroups(ctx, org, &github.ListOptions{PerPage: 100})
+	groups, _, err := m.actionsClient.ListOrganizationRunnerGroups(ctx, org, &github.ListOptions{PerPage: 100})
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed querying organization runner groups: %w", err)
 	}
 	for _, group := range groups.RunnerGroups {
 		if group.GetName() == name {
 			return group.ID, nil
 		}
 	}
-	return nil, fmt.Errorf("unable to locate runner group")
+	return nil, fmt.Errorf("unable to locate runner group with name %s", name)
 }
 
-func doGroupAdd(w http.ResponseWriter, req *http.Request) {
+func (m *manager) doGroupAdd(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
 		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
@@ -80,7 +99,7 @@ func doGroupAdd(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := context.Background()
-	group, resp, err := appClient.Actions.CreateOrganizationRunnerGroup(ctx, org, github.CreateRunnerGroupRequest{
+	group, resp, err := m.actionsClient.CreateOrganizationRunnerGroup(ctx, org, github.CreateRunnerGroupRequest{
 		Name:                     github.String(team),
 		Visibility:               github.String("private"),
 		AllowsPublicRepositories: github.Bool(false),
@@ -97,7 +116,7 @@ func doGroupAdd(w http.ResponseWriter, req *http.Request) {
 	_, _ = fmt.Fprintf(w, "Runner group created successfully: %s", group.GetName())
 }
 
-func doGroupDelete(w http.ResponseWriter, req *http.Request) {
+func (m *manager) doGroupDelete(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
 		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
@@ -110,14 +129,14 @@ func doGroupDelete(w http.ResponseWriter, req *http.Request) {
 		panic("User is not a maintainer of the team")
 	}
 
-	id, err := retrieveGroupID(appClient, team)
+	id, err := m.retrieveGroupID(team)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	ctx := context.Background()
-	_, err = appClient.Actions.DeleteOrganizationRunnerGroup(ctx, org, *id)
+	_, err = m.actionsClient.DeleteOrganizationRunnerGroup(ctx, org, *id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -130,7 +149,7 @@ type listResponse struct {
 	Runners []string `json:"runners"`
 }
 
-func doGroupList(w http.ResponseWriter, req *http.Request) {
+func (m *manager) doGroupList(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
 		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
@@ -143,14 +162,14 @@ func doGroupList(w http.ResponseWriter, req *http.Request) {
 		panic("User is not a maintainer of the team")
 	}
 
-	id, err := retrieveGroupID(appClient, team)
+	id, err := m.retrieveGroupID(team)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	ctx := context.Background()
-	runners, _, err := appClient.Actions.ListRunnerGroupRunners(ctx, org, *id, &github.ListOptions{PerPage: 100})
+	runners, _, err := m.actionsClient.ListRunnerGroupRunners(ctx, org, *id, &github.ListOptions{PerPage: 100})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -160,7 +179,7 @@ func doGroupList(w http.ResponseWriter, req *http.Request) {
 		filteredRunners = append(filteredRunners, runner.GetName())
 	}
 
-	repos, _, err := appClient.Actions.ListRepositoryAccessRunnerGroup(ctx, org, *id, &github.ListOptions{PerPage: 100})
+	repos, _, err := m.actionsClient.ListRepositoryAccessRunnerGroup(ctx, org, *id, &github.ListOptions{PerPage: 100})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -190,7 +209,7 @@ func doGroupList(w http.ResponseWriter, req *http.Request) {
 	_, _ = fmt.Fprintf(w, string(response))
 }
 
-func doTokenRegister(w http.ResponseWriter, req *http.Request) {
+func (m *manager) doTokenRegister(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
 		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
@@ -204,7 +223,7 @@ func doTokenRegister(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := context.Background()
-	token, _, err := appClient.Actions.CreateOrganizationRegistrationToken(ctx, org)
+	token, _, err := m.actionsClient.CreateOrganizationRegistrationToken(ctx, org)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -217,7 +236,7 @@ func doTokenRegister(w http.ResponseWriter, req *http.Request) {
 	_, _ = fmt.Fprintf(w, string(response))
 }
 
-func doTokenRemove(w http.ResponseWriter, req *http.Request) {
+func (m *manager) doTokenRemove(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
 		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
@@ -231,7 +250,7 @@ func doTokenRemove(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := context.Background()
-	token, _, err := appClient.Actions.CreateOrganizationRemoveToken(ctx, org)
+	token, _, err := m.actionsClient.CreateOrganizationRemoveToken(ctx, org)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -244,7 +263,7 @@ func doTokenRemove(w http.ResponseWriter, req *http.Request) {
 	_, _ = fmt.Fprintf(w, string(response))
 }
 
-func doReposAdd(w http.ResponseWriter, req *http.Request) {
+func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
 		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
@@ -265,12 +284,7 @@ func doReposAdd(w http.ResponseWriter, req *http.Request) {
 		panic("User is not a maintainer of the team")
 	}
 
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 145597, 20164413, "key.pem")
-	if err != nil {
-		panic("Failed creating app authentication")
-	}
-	client := github.NewClient(&http.Client{Transport: itr})
-	id, err := retrieveGroupID(client, team)
+	id, err := m.retrieveGroupID(team)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -299,15 +313,18 @@ func doReposAdd(w http.ResponseWriter, req *http.Request) {
 
 	for name, repoID := range repoIDs {
 		fmt.Println("Adding repo " + name + " to runner group " + team)
-		_, err = client.Actions.AddRepositoryAccessRunnerGroup(ctx, org, *id, repoID)
+		_, err = m.actionsClient.AddRepositoryAccessRunnerGroup(ctx, org, *id, repoID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	fmt.Fprintf(w, "Successfully added repositories to runner group")
+	_, err = fmt.Fprintf(w, "Successfully added repositories to runner group")
+	if err != nil {
+
+	}
 }
 
-func doReposRemove(w http.ResponseWriter, req *http.Request) {
+func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
 		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
@@ -328,12 +345,7 @@ func doReposRemove(w http.ResponseWriter, req *http.Request) {
 		panic("User is not a maintainer of the team")
 	}
 
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 145597, 20164413, "key.pem")
-	if err != nil {
-		panic("Failed creating app authentication")
-	}
-	client := github.NewClient(&http.Client{Transport: itr})
-	id, err := retrieveGroupID(client, team)
+	id, err := m.retrieveGroupID(team)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -362,15 +374,18 @@ func doReposRemove(w http.ResponseWriter, req *http.Request) {
 
 	for name, repoID := range repoIDs {
 		fmt.Println("Removing repo " + name + " to runner group " + team)
-		_, err = client.Actions.RemoveRepositoryAccessRunnerGroup(ctx, org, *id, repoID)
+		_, err = m.actionsClient.RemoveRepositoryAccessRunnerGroup(ctx, org, *id, repoID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	fmt.Fprintf(w, "Successfully removed repositories to runner group")
+	_, err = fmt.Fprintf(w, "Successfully removed repositories to runner group")
+	if err != nil {
+
+	}
 }
 
-func doReposSet(w http.ResponseWriter, req *http.Request) {
+func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
 		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
@@ -391,12 +406,7 @@ func doReposSet(w http.ResponseWriter, req *http.Request) {
 		panic("User is not a maintainer of the team")
 	}
 
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 145597, 20164413, "key.pem")
-	if err != nil {
-		panic("Failed creating app authentication")
-	}
-	client := github.NewClient(&http.Client{Transport: itr})
-	id, err := retrieveGroupID(client, team)
+	id, err := m.retrieveGroupID(team)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -423,25 +433,50 @@ func doReposSet(w http.ResponseWriter, req *http.Request) {
 		repoIDs = append(repoIDs, repo.GetID())
 	}
 
-	_, err = client.Actions.SetRepositoryAccessRunnerGroup(ctx, org, *id, github.SetRepoAccessRunnerGroupRequest{
+	_, err = m.actionsClient.SetRepositoryAccessRunnerGroup(ctx, org, *id, github.SetRepoAccessRunnerGroupRequest{
 		SelectedRepositoryIDs: repoIDs,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	fmt.Fprintf(w, "Successfully replaced all repositories in runner group")
+	_, err = fmt.Fprintf(w, "Successfully replaced all repositories in runner group")
+	if err != nil {
+
+	}
 }
 
 func main() {
-	http.HandleFunc("/group-add", doGroupAdd)
-	http.HandleFunc("/group-delete", doGroupDelete)
-	http.HandleFunc("/group-list", doGroupList)
-	http.HandleFunc("/repos-add", doReposAdd)
-	http.HandleFunc("/repos-remove", doReposRemove)
-	http.HandleFunc("/repos-set", doReposSet)
-	http.HandleFunc("/token-register", doTokenRegister)
-	http.HandleFunc("/token-remove", doTokenRemove)
+	err := os.MkdirAll("logs", os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
+	f, err := os.OpenFile("logs/server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	log.SetOutput(io.MultiWriter(os.Stdout, f))
+
+	log.Info("Generating GitHub application credentials")
+	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 145597, 20164413, "key.pem")
+	if err != nil {
+		panic("Failed creating app authentication")
+	}
+
+	log.Info("Creating GitHub client")
+	client := github.NewClient(&http.Client{Transport: itr})
+	manager := &manager{
+		actionsClient: client.Actions,
+	}
+
+	http.HandleFunc("/group-add", manager.doGroupAdd)
+	http.HandleFunc("/group-delete", manager.doGroupDelete)
+	http.HandleFunc("/group-list", manager.doGroupList)
+	http.HandleFunc("/repos-add", manager.doReposAdd)
+	http.HandleFunc("/repos-remove", manager.doReposRemove)
+	http.HandleFunc("/repos-set", manager.doReposSet)
+	http.HandleFunc("/token-register", manager.doTokenRegister)
+	http.HandleFunc("/token-remove", manager.doTokenRemove)
 
 	panic(http.ListenAndServe(":80", nil))
 }
