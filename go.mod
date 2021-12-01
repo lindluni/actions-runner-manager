@@ -7,7 +7,7 @@ require (
 	github.com/google/go-github/v41 v41.0.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.6.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b
 	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1
 	golang.org/x/tools v0.1.8-0.20211102182255-bb4add04ddef
@@ -31,5 +31,5 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
