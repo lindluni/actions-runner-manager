@@ -4,6 +4,7 @@ function filterExcludedAndGeneratedFiles {
     local excluded_files
     excluded_files=(
         '(^|/)\.git/'
+        '(^|/)\go/pkg/mod/'
         '(^|/)go.mod$'
         '(^|/)go.sum$'
         '\.html$'
