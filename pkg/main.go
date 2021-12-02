@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -47,8 +46,24 @@ type actionsClient interface {
 	SetRepositoryAccessRunnerGroup(ctx context.Context, org string, groupID int64, ids github.SetRepoAccessRunnerGroupRequest) (*github.Response, error)
 }
 
+//counterfeiter:generate -o mocks/teams_client.go -fake-name TeamsClient . teamsClient
+type teamsClient interface {
+	GetTeamMembershipBySlug(ctx context.Context, org, slug, user string) (*github.Membership, *github.Response, error)
+}
+
+//counterfeiter:generate -o mocks/users_client.go -fake-name UsersClient . usersClient
+type usersClient interface {
+	Get(ctx context.Context, user string) (*github.User, *github.Response, error)
+}
+
 type manager struct {
-	actionsClient actionsClient
+	actionsClient              actionsClient
+	createMaintainershipClient func(string) *maintainershipClient
+}
+
+type maintainershipClient struct {
+	teamsClient teamsClient
+	usersClient usersClient
 }
 
 type response struct {
@@ -56,27 +71,17 @@ type response struct {
 	Message    string
 }
 
-func createClient(token string) *github.Client {
-	log.Info("Creating user GitHub client")
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	return github.NewClient(tc)
-}
-
-func verifyMaintainership(createClient func(token string) *github.Client, token, team string) bool {
-	client := createClient(token)
+func (m *manager) verifyMaintainership(token, team string) bool {
+	client := m.createMaintainershipClient(token)
 
 	log.Info("Retrieving authorized user metadata")
 	ctx := context.Background()
-	user, _, err := client.Users.Get(ctx, "")
+	user, _, err := client.usersClient.Get(ctx, "")
 	if err != nil {
 		log.Error("Failed retrieving user metadata")
 	}
 
-	membership, resp, err := client.Teams.GetTeamMembershipBySlug(ctx, org, team, user.GetLogin())
+	membership, resp, err := client.teamsClient.GetTeamMembershipBySlug(ctx, org, team, user.GetLogin())
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			log.Fatalf("Unable to locate team %s", team)
@@ -108,9 +113,17 @@ func (m *manager) doGroupAdd(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
+	token := req.Header.Get("AUTHORIZATION")
+	if token == "" {
+		http.Error(w, "authorization header missing", http.StatusForbidden)
+		return
+	}
+
+	isMaintainer := m.verifyMaintainership(token, team)
 	if !isMaintainer {
-		panic("User is not a maintainer of the team")
+		log.Error("User is not a maintainer of the team")
+		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		return
 	}
 
 	ctx := context.Background()
@@ -148,9 +161,16 @@ func (m *manager) doGroupDelete(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
+	token := req.Header.Get("AUTHORIZATION")
+	if token == "" {
+		http.Error(w, "authorization header missing", http.StatusForbidden)
+	}
+
+	isMaintainer := m.verifyMaintainership(token, team)
 	if !isMaintainer {
-		panic("User is not a maintainer of the team")
+		log.Error("User is not a maintainer of the team")
+		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		return
 	}
 
 	id, err := m.retrieveGroupID(team)
@@ -189,9 +209,16 @@ func (m *manager) doGroupList(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
+	token := req.Header.Get("AUTHORIZATION")
+	if token == "" {
+		http.Error(w, "authorization header missing", http.StatusForbidden)
+	}
+
+	isMaintainer := m.verifyMaintainership(token, team)
 	if !isMaintainer {
-		panic("User is not a maintainer of the team")
+		log.Error("User is not a maintainer of the team")
+		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		return
 	}
 
 	id, err := m.retrieveGroupID(team)
@@ -248,20 +275,27 @@ func (m *manager) doTokenRegister(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
+	token := req.Header.Get("AUTHORIZATION")
+	if token == "" {
+		http.Error(w, "authorization header missing", http.StatusForbidden)
+	}
+
+	isMaintainer := m.verifyMaintainership(token, team)
 	if !isMaintainer {
-		panic("User is not a maintainer of the team")
+		log.Error("User is not a maintainer of the team")
+		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		return
 	}
 
 	ctx := context.Background()
-	token, _, err := m.actionsClient.CreateOrganizationRegistrationToken(ctx, org)
+	registrationToken, _, err := m.actionsClient.CreateOrganizationRegistrationToken(ctx, org)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(token)
+	err = json.NewEncoder(w).Encode(registrationToken)
 	if err != nil {
 		log.Error(err)
 	}
@@ -275,20 +309,27 @@ func (m *manager) doTokenRemove(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
+	token := req.Header.Get("AUTHORIZATION")
+	if token == "" {
+		http.Error(w, "authorization header missing", http.StatusForbidden)
+	}
+
+	isMaintainer := m.verifyMaintainership(token, team)
 	if !isMaintainer {
-		panic("User is not a maintainer of the team")
+		log.Error("User is not a maintainer of the team")
+		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		return
 	}
 
 	ctx := context.Background()
-	token, _, err := m.actionsClient.CreateOrganizationRemoveToken(ctx, org)
+	deregistrationToken, _, err := m.actionsClient.CreateOrganizationRemoveToken(ctx, org)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(token)
+	err = json.NewEncoder(w).Encode(deregistrationToken)
 	if err != nil {
 		log.Error(err)
 	}
@@ -307,12 +348,18 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Missing required parameter: repos", http.StatusBadRequest)
 		return
 	}
-
 	repoNames := strings.Split(reposParam[0], ",")
 
-	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
+	token := req.Header.Get("AUTHORIZATION")
+	if token == "" {
+		http.Error(w, "authorization header missing", http.StatusForbidden)
+	}
+
+	isMaintainer := m.verifyMaintainership(token, team)
 	if !isMaintainer {
-		panic("User is not a maintainer of the team")
+		log.Error("User is not a maintainer of the team")
+		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		return
 	}
 
 	id, err := m.retrieveGroupID(team)
@@ -323,7 +370,7 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GITHUB_PAT")},
+		&oauth2.Token{AccessToken: token},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	userClient := github.NewClient(tc)
@@ -374,12 +421,18 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Missing required parameter: repos", http.StatusBadRequest)
 		return
 	}
-
 	repoNames := strings.Split(reposParam[0], ",")
 
-	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
+	token := req.Header.Get("AUTHORIZATION")
+	if token == "" {
+		http.Error(w, "authorization header missing", http.StatusForbidden)
+	}
+
+	isMaintainer := m.verifyMaintainership(token, team)
 	if !isMaintainer {
-		panic("User is not a maintainer of the team")
+		log.Error("User is not a maintainer of the team")
+		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		return
 	}
 
 	id, err := m.retrieveGroupID(team)
@@ -390,7 +443,7 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GITHUB_PAT")},
+		&oauth2.Token{AccessToken: token},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	userClient := github.NewClient(tc)
@@ -441,12 +494,18 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Missing required parameter: repos", http.StatusBadRequest)
 		return
 	}
-
 	repoNames := strings.Split(reposParam[0], ",")
 
-	isMaintainer := verifyMaintainership(createClient, os.Getenv("GITHUB_PAT"), team)
+	token := req.Header.Get("AUTHORIZATION")
+	if token == "" {
+		http.Error(w, "authorization header missing", http.StatusForbidden)
+	}
+
+	isMaintainer := m.verifyMaintainership(token, team)
 	if !isMaintainer {
-		panic("User is not a maintainer of the team")
+		log.Error("User is not a maintainer of the team")
+		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		return
 	}
 
 	id, err := m.retrieveGroupID(team)
@@ -457,7 +516,7 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GITHUB_PAT")},
+		&oauth2.Token{AccessToken: token},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	userClient := github.NewClient(tc)
@@ -499,12 +558,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	f, err := os.OpenFile("logs/server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
-	if err != nil {
-		panic(err)
-	}
-	log.SetOutput(io.MultiWriter(os.Stdout, f))
-
+	//f, err := os.OpenFile("logs/server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//log.SetOutput(io.MultiWriter(os.Stdout, f))
+	//
 	log.Info("Generating GitHub application credentials")
 	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 145597, 20164413, "key.pem")
 	if err != nil {
@@ -512,9 +571,24 @@ func main() {
 	}
 
 	log.Info("Creating GitHub client")
+
 	client := github.NewClient(&http.Client{Transport: itr})
+	createClient := func(token string) *maintainershipClient {
+		log.Info("Creating user GitHub client")
+		ctx := context.Background()
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: token},
+		)
+		tc := oauth2.NewClient(ctx, ts)
+		client := github.NewClient(tc)
+		return &maintainershipClient{
+			teamsClient: client.Teams,
+			usersClient: client.Users,
+		}
+	}
 	manager := &manager{
-		actionsClient: client.Actions,
+		actionsClient:              client.Actions,
+		createMaintainershipClient: createClient,
 	}
 
 	http.HandleFunc("/group-add", manager.doGroupAdd)
