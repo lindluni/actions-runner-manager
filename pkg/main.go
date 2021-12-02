@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v41/github"
@@ -37,10 +36,10 @@ import (
 )
 
 func main() {
-	err := os.MkdirAll("logs", os.ModePerm)
-	if err != nil {
-		panic(err)
-	}
+	//err := os.MkdirAll("logs", os.ModePerm)
+	//if err != nil {
+	//	panic(err)
+	//}
 	//f, err := os.OpenFile("logs/server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
 	//if err != nil {
 	//	panic(err)
