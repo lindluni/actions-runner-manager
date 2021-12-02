@@ -68,9 +68,10 @@ type repositoriesClient interface {
 }
 
 type manager struct {
-	actionsClient              actionsClient
-	repositoriesClient         repositoriesClient
-	teamsClient                teamsClient
+	actionsClient      actionsClient
+	repositoriesClient repositoriesClient
+	teamsClient        teamsClient
+
 	createMaintainershipClient func(string) (*maintainershipClient, error)
 }
 
@@ -80,8 +81,8 @@ type maintainershipClient struct {
 }
 
 type response struct {
-	StatusCode int
 	Message    string
+	StatusCode int
 }
 
 // TODO: Add error paths and return errors
