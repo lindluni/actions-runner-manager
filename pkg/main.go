@@ -17,6 +17,7 @@ SPDX-License-Identifier: Apache-2.0
 // TODO: All responses, including errors should be JSON responses
 // TODO: Check team is assigned to repo for add/delete/set
 // TODO: Require all runners to be deleted before deleting group or pass force=true parameter
+
 package main
 
 import (
@@ -423,7 +424,6 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 
 	ctx := context.Background()
 	repoIDs := map[string]int64{}
-	fmt.Println(team)
 	teamRepos, _, err := m.teamsClient.ListTeamReposBySlug(ctx, org, team, &github.ListOptions{PerPage: 100})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -462,7 +462,6 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 
 func findRepoID(name string, teamRepos []*github.Repository) (int64, error) {
 	for _, teamRepo := range teamRepos {
-		fmt.Println(teamRepo.GetName())
 		if name == teamRepo.GetName() {
 			return teamRepo.GetID(), nil
 		}
@@ -509,9 +508,10 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	ctx := context.Background()
 	repoIDs := map[string]int64{}
 	for _, name := range repoNames {
-		repo, resp, err := m.repositoriesClient.Get(context.Background(), org, name)
+		repo, resp, err := m.repositoriesClient.Get(ctx, org, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				http.Error(w, "Repository not found: "+name, http.StatusNotFound)
@@ -525,7 +525,7 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 
 	for name, repoID := range repoIDs {
 		log.Infof("Removing repo %s from runner group %s", name, team)
-		_, err = m.actionsClient.RemoveRepositoryAccessRunnerGroup(context.Background(), org, *id, repoID)
+		_, err = m.actionsClient.RemoveRepositoryAccessRunnerGroup(ctx, org, *id, repoID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -581,9 +581,10 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	ctx := context.Background()
 	var repoIDs []int64
 	for _, name := range repoNames {
-		repo, resp, err := m.repositoriesClient.Get(context.Background(), org, name)
+		repo, resp, err := m.repositoriesClient.Get(ctx, org, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				http.Error(w, "Repository not found: "+name, http.StatusNotFound)
@@ -595,7 +596,7 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 		repoIDs = append(repoIDs, repo.GetID())
 	}
 
-	_, err = m.actionsClient.SetRepositoryAccessRunnerGroup(context.Background(), org, *id, github.SetRepoAccessRunnerGroupRequest{
+	_, err = m.actionsClient.SetRepositoryAccessRunnerGroup(ctx, org, *id, github.SetRepoAccessRunnerGroupRequest{
 		SelectedRepositoryIDs: repoIDs,
 	})
 	if err != nil {
