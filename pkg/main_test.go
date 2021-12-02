@@ -23,11 +23,11 @@ func TestDoGroupAdd_Success(t *testing.T) {
 	usersClient := &mocks.UsersClient{}
 	manager := &manager{
 		actionsClient: actionsClient,
-		createMaintainershipClient: func(s string) *maintainershipClient {
+		createMaintainershipClient: func(s string) (*maintainershipClient, error) {
 			return &maintainershipClient{
 				teamsClient: teamsClient,
 				usersClient: usersClient,
-			}
+			}, nil
 		},
 	}
 
@@ -45,7 +45,7 @@ func TestDoGroupAdd_Success(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/group-add?team=fake-team", nil)
 	request.Header.Set("AUTHORIZATION", "test-token")
 
-	manager.doGroupAdd(writer, request)
+	manager.doGroupCreate(writer, request)
 	result := writer.Result()
 	body, err := ioutil.ReadAll(result.Body)
 	defer result.Body.Close()

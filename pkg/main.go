@@ -12,6 +12,11 @@ SPDX-License-Identifier: Apache-2.0
 // TODO: Reimplement GETS as POSTS, this will require creating structs to marshal the body into
 // TODO: Add CODEOWNERS and enforce it
 // TODO: Write errors as response objects, not http calls
+// TODO: Push authorization header into standalone function
+// TODO: Implement rate limits on user
+// TODO: All responses, including errors should be JSON responses
+// TODO: Check team is assigned to repo for add/delete/set
+// TODO: Require all runners to be deleted before deleting group or pass force=true parameter
 package main
 
 import (
@@ -28,7 +33,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const org = "department-of-veterans-affairs"
+const org = "lindluni-enterprise"
 
 //go:generate counterfeiter -generate
 
@@ -49,6 +54,7 @@ type actionsClient interface {
 //counterfeiter:generate -o mocks/teams_client.go -fake-name TeamsClient . teamsClient
 type teamsClient interface {
 	GetTeamMembershipBySlug(ctx context.Context, org, slug, user string) (*github.Membership, *github.Response, error)
+	ListTeamReposBySlug(ctx context.Context, org, slug string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)
 }
 
 //counterfeiter:generate -o mocks/users_client.go -fake-name UsersClient . usersClient
@@ -56,9 +62,16 @@ type usersClient interface {
 	Get(ctx context.Context, user string) (*github.User, *github.Response, error)
 }
 
+//counterfeiter:generate -o mocks/repositories_client.go -fake-name RepositoriesClient . repositoriesClient
+type repositoriesClient interface {
+	Get(ctx context.Context, owner, repo string) (*github.Repository, *github.Response, error)
+}
+
 type manager struct {
 	actionsClient              actionsClient
-	createMaintainershipClient func(string) *maintainershipClient
+	repositoriesClient         repositoriesClient
+	teamsClient                teamsClient
+	createMaintainershipClient func(string) (*maintainershipClient, error)
 }
 
 type maintainershipClient struct {
@@ -72,24 +85,27 @@ type response struct {
 }
 
 // TODO: Add error paths and return errors
-func (m *manager) verifyMaintainership(token, team string) bool {
-	client := m.createMaintainershipClient(token)
+func (m *manager) verifyMaintainership(token, team string) (bool, error) {
+	client, err := m.createMaintainershipClient(token)
+	if err != nil {
+		return false, fmt.Errorf("failed retrieving user client: %w", err)
+	}
 
 	log.Info("Retrieving authorized user metadata")
 	ctx := context.Background()
 	user, _, err := client.usersClient.Get(ctx, "")
 	if err != nil {
-		log.Error("Failed retrieving user metadata")
+		return false, fmt.Errorf("failed retrieving authenticated users data")
 	}
 
 	membership, resp, err := client.teamsClient.GetTeamMembershipBySlug(ctx, org, team, user.GetLogin())
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
-			log.Fatalf("Unable to locate team %s", team)
+			return false, fmt.Errorf("unable to locate team %s", team)
 		}
-		log.Error(err)
+		return false, err
 	}
-	return membership.GetRole() == "maintainer"
+	return membership.GetRole() == "maintainer", nil
 }
 
 func (m *manager) retrieveGroupID(name string) (*int64, error) {
@@ -106,7 +122,7 @@ func (m *manager) retrieveGroupID(name string) (*int64, error) {
 	return nil, fmt.Errorf("unable to locate runner group with name %s", name)
 }
 
-func (m *manager) doGroupAdd(w http.ResponseWriter, req *http.Request) {
+func (m *manager) doGroupCreate(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
 		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
@@ -114,13 +130,18 @@ func (m *manager) doGroupAdd(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	token := req.Header.Get("AUTHORIZATION")
+	token := req.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "authorization header missing", http.StatusForbidden)
 		return
 	}
 
-	isMaintainer := m.verifyMaintainership(token, team)
+	isMaintainer, err := m.verifyMaintainership(token, team)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v", err), http.StatusForbidden)
+		return
+	}
 	if !isMaintainer {
 		log.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
@@ -130,11 +151,11 @@ func (m *manager) doGroupAdd(w http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
 	group, resp, err := m.actionsClient.CreateOrganizationRunnerGroup(ctx, org, github.CreateRunnerGroupRequest{
 		Name:                     github.String(team),
-		Visibility:               github.String("private"),
+		Visibility:               github.String("selected"),
 		AllowsPublicRepositories: github.Bool(false),
 	})
 	if err != nil {
-		if resp.StatusCode == http.StatusConflict {
+		if resp != nil && resp.StatusCode == http.StatusConflict {
 			errMsg := "Runner group already exists: " + team
 			http.Error(w, errMsg, http.StatusConflict)
 			return
@@ -162,12 +183,18 @@ func (m *manager) doGroupDelete(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	token := req.Header.Get("AUTHORIZATION")
+	token := req.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "authorization header missing", http.StatusForbidden)
+		return
 	}
 
-	isMaintainer := m.verifyMaintainership(token, team)
+	isMaintainer, err := m.verifyMaintainership(token, team)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		return
+	}
 	if !isMaintainer {
 		log.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
@@ -210,12 +237,18 @@ func (m *manager) doGroupList(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	token := req.Header.Get("AUTHORIZATION")
+	token := req.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "authorization header missing", http.StatusForbidden)
+		return
 	}
 
-	isMaintainer := m.verifyMaintainership(token, team)
+	isMaintainer, err := m.verifyMaintainership(token, team)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		return
+	}
 	if !isMaintainer {
 		log.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
@@ -276,12 +309,18 @@ func (m *manager) doTokenRegister(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	token := req.Header.Get("AUTHORIZATION")
+	token := req.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "authorization header missing", http.StatusForbidden)
+		return
 	}
 
-	isMaintainer := m.verifyMaintainership(token, team)
+	isMaintainer, err := m.verifyMaintainership(token, team)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		return
+	}
 	if !isMaintainer {
 		log.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
@@ -310,12 +349,18 @@ func (m *manager) doTokenRemove(w http.ResponseWriter, req *http.Request) {
 	}
 	team := teamParam[0]
 
-	token := req.Header.Get("AUTHORIZATION")
+	token := req.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "authorization header missing", http.StatusForbidden)
+		return
 	}
 
-	isMaintainer := m.verifyMaintainership(token, team)
+	isMaintainer, err := m.verifyMaintainership(token, team)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		return
+	}
 	if !isMaintainer {
 		log.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
@@ -351,12 +396,18 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 	}
 	repoNames := strings.Split(reposParam[0], ",")
 
-	token := req.Header.Get("AUTHORIZATION")
+	token := req.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "authorization header missing", http.StatusForbidden)
+		return
 	}
 
-	isMaintainer := m.verifyMaintainership(token, team)
+	isMaintainer, err := m.verifyMaintainership(token, team)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		return
+	}
 	if !isMaintainer {
 		log.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
@@ -370,31 +421,30 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	userClient := github.NewClient(tc)
-
 	repoIDs := map[string]int64{}
+	fmt.Println(team)
+	teamRepos, _, err := m.teamsClient.ListTeamReposBySlug(ctx, org, team, &github.ListOptions{PerPage: 100})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	for _, name := range repoNames {
-		repo, resp, err := userClient.Repositories.Get(ctx, org, name)
+		log.Infof("Checking if team %s has access to repo %s", team, name)
+		id, err := findRepoID(name, teamRepos)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				http.Error(w, "Repository not found: "+name, http.StatusNotFound)
-				return
-			}
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Errorf("Team %s has no access to repo %s", team, name)
+			http.Error(w, fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err), http.StatusNotFound)
 			return
 		}
-		repoIDs[name] = repo.GetID()
+		repoIDs[name] = id
 	}
 
 	for name, repoID := range repoIDs {
-		fmt.Println("Adding repo " + name + " to runner group " + team)
+		log.Infof("Adding repo %s to runner group %s", name, team)
 		_, err = m.actionsClient.AddRepositoryAccessRunnerGroup(ctx, org, *id, repoID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	}
 
@@ -407,6 +457,16 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Error(err)
 	}
+}
+
+func findRepoID(name string, teamRepos []*github.Repository) (int64, error) {
+	for _, teamRepo := range teamRepos {
+		fmt.Println(teamRepo.GetName())
+		if name == teamRepo.GetName() {
+			return teamRepo.GetID(), nil
+		}
+	}
+	return -1, fmt.Errorf("team does not have repo access")
 }
 
 func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
@@ -424,12 +484,18 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 	}
 	repoNames := strings.Split(reposParam[0], ",")
 
-	token := req.Header.Get("AUTHORIZATION")
+	token := req.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "authorization header missing", http.StatusForbidden)
+		return
 	}
 
-	isMaintainer := m.verifyMaintainership(token, team)
+	isMaintainer, err := m.verifyMaintainership(token, team)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		return
+	}
 	if !isMaintainer {
 		log.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
@@ -442,16 +508,9 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	userClient := github.NewClient(tc)
-
 	repoIDs := map[string]int64{}
 	for _, name := range repoNames {
-		repo, resp, err := userClient.Repositories.Get(ctx, org, name)
+		repo, resp, err := m.repositoriesClient.Get(context.Background(), org, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				http.Error(w, "Repository not found: "+name, http.StatusNotFound)
@@ -465,7 +524,7 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 
 	for name, repoID := range repoIDs {
 		log.Infof("Removing repo %s from runner group %s", name, team)
-		_, err = m.actionsClient.RemoveRepositoryAccessRunnerGroup(ctx, org, *id, repoID)
+		_, err = m.actionsClient.RemoveRepositoryAccessRunnerGroup(context.Background(), org, *id, repoID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -497,12 +556,18 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 	}
 	repoNames := strings.Split(reposParam[0], ",")
 
-	token := req.Header.Get("AUTHORIZATION")
+	token := req.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "authorization header missing", http.StatusForbidden)
+		return
 	}
 
-	isMaintainer := m.verifyMaintainership(token, team)
+	isMaintainer, err := m.verifyMaintainership(token, team)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		return
+	}
 	if !isMaintainer {
 		log.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
@@ -515,16 +580,9 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	userClient := github.NewClient(tc)
-
 	var repoIDs []int64
 	for _, name := range repoNames {
-		repo, resp, err := userClient.Repositories.Get(ctx, org, name)
+		repo, resp, err := m.repositoriesClient.Get(context.Background(), org, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				http.Error(w, "Repository not found: "+name, http.StatusNotFound)
@@ -536,7 +594,7 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 		repoIDs = append(repoIDs, repo.GetID())
 	}
 
-	_, err = m.actionsClient.SetRepositoryAccessRunnerGroup(ctx, org, *id, github.SetRepoAccessRunnerGroupRequest{
+	_, err = m.actionsClient.SetRepositoryAccessRunnerGroup(context.Background(), org, *id, github.SetRepoAccessRunnerGroupRequest{
 		SelectedRepositoryIDs: repoIDs,
 	})
 	if err != nil {
@@ -566,7 +624,7 @@ func main() {
 	//log.SetOutput(io.MultiWriter(os.Stdout, f))
 	//
 	log.Info("Generating GitHub application credentials")
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 145597, 20164413, "key.pem")
+	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 145597, 21070181, "../key.pem")
 	if err != nil {
 		panic("Failed creating app authentication")
 	}
@@ -574,7 +632,7 @@ func main() {
 	log.Info("Creating GitHub client")
 
 	client := github.NewClient(&http.Client{Transport: itr})
-	createClient := func(token string) *maintainershipClient {
+	createClient := func(token string) (*maintainershipClient, error) {
 		log.Info("Creating user GitHub client")
 		ctx := context.Background()
 		ts := oauth2.StaticTokenSource(
@@ -582,17 +640,23 @@ func main() {
 		)
 		tc := oauth2.NewClient(ctx, ts)
 		client := github.NewClient(tc)
+		rateLimit, _, err := client.RateLimits(context.Background())
+		if err != nil || rateLimit.GetCore().Limit != 5000 {
+			return nil, fmt.Errorf("unable to verify authorization token authenticity: %w", err)
+		}
 		return &maintainershipClient{
 			teamsClient: client.Teams,
 			usersClient: client.Users,
-		}
+		}, nil
 	}
 	manager := &manager{
 		actionsClient:              client.Actions,
+		repositoriesClient:         client.Repositories,
+		teamsClient:                client.Teams,
 		createMaintainershipClient: createClient,
 	}
 
-	http.HandleFunc("/group-add", manager.doGroupAdd)
+	http.HandleFunc("/group-create", manager.doGroupCreate)
 	http.HandleFunc("/group-delete", manager.doGroupDelete)
 	http.HandleFunc("/group-list", manager.doGroupList)
 	http.HandleFunc("/repos-add", manager.doReposAdd)
@@ -601,5 +665,8 @@ func main() {
 	http.HandleFunc("/token-register", manager.doTokenRegister)
 	http.HandleFunc("/token-remove", manager.doTokenRemove)
 
-	panic(http.ListenAndServe(":80", nil))
+	err = http.ListenAndServe(":80", nil)
+	if err != nil {
+		panic(err)
+	}
 }

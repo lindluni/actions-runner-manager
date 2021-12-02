@@ -27,6 +27,24 @@ type TeamsClient struct {
 		result2 *github.Response
 		result3 error
 	}
+	ListTeamReposBySlugStub        func(context.Context, string, string, *github.ListOptions) ([]*github.Repository, *github.Response, error)
+	listTeamReposBySlugMutex       sync.RWMutex
+	listTeamReposBySlugArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 *github.ListOptions
+	}
+	listTeamReposBySlugReturns struct {
+		result1 []*github.Repository
+		result2 *github.Response
+		result3 error
+	}
+	listTeamReposBySlugReturnsOnCall map[int]struct {
+		result1 []*github.Repository
+		result2 *github.Response
+		result3 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -101,11 +119,83 @@ func (fake *TeamsClient) GetTeamMembershipBySlugReturnsOnCall(i int, result1 *gi
 	}{result1, result2, result3}
 }
 
+func (fake *TeamsClient) ListTeamReposBySlug(arg1 context.Context, arg2 string, arg3 string, arg4 *github.ListOptions) ([]*github.Repository, *github.Response, error) {
+	fake.listTeamReposBySlugMutex.Lock()
+	ret, specificReturn := fake.listTeamReposBySlugReturnsOnCall[len(fake.listTeamReposBySlugArgsForCall)]
+	fake.listTeamReposBySlugArgsForCall = append(fake.listTeamReposBySlugArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 *github.ListOptions
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.ListTeamReposBySlugStub
+	fakeReturns := fake.listTeamReposBySlugReturns
+	fake.recordInvocation("ListTeamReposBySlug", []interface{}{arg1, arg2, arg3, arg4})
+	fake.listTeamReposBySlugMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *TeamsClient) ListTeamReposBySlugCallCount() int {
+	fake.listTeamReposBySlugMutex.RLock()
+	defer fake.listTeamReposBySlugMutex.RUnlock()
+	return len(fake.listTeamReposBySlugArgsForCall)
+}
+
+func (fake *TeamsClient) ListTeamReposBySlugCalls(stub func(context.Context, string, string, *github.ListOptions) ([]*github.Repository, *github.Response, error)) {
+	fake.listTeamReposBySlugMutex.Lock()
+	defer fake.listTeamReposBySlugMutex.Unlock()
+	fake.ListTeamReposBySlugStub = stub
+}
+
+func (fake *TeamsClient) ListTeamReposBySlugArgsForCall(i int) (context.Context, string, string, *github.ListOptions) {
+	fake.listTeamReposBySlugMutex.RLock()
+	defer fake.listTeamReposBySlugMutex.RUnlock()
+	argsForCall := fake.listTeamReposBySlugArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *TeamsClient) ListTeamReposBySlugReturns(result1 []*github.Repository, result2 *github.Response, result3 error) {
+	fake.listTeamReposBySlugMutex.Lock()
+	defer fake.listTeamReposBySlugMutex.Unlock()
+	fake.ListTeamReposBySlugStub = nil
+	fake.listTeamReposBySlugReturns = struct {
+		result1 []*github.Repository
+		result2 *github.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *TeamsClient) ListTeamReposBySlugReturnsOnCall(i int, result1 []*github.Repository, result2 *github.Response, result3 error) {
+	fake.listTeamReposBySlugMutex.Lock()
+	defer fake.listTeamReposBySlugMutex.Unlock()
+	fake.ListTeamReposBySlugStub = nil
+	if fake.listTeamReposBySlugReturnsOnCall == nil {
+		fake.listTeamReposBySlugReturnsOnCall = make(map[int]struct {
+			result1 []*github.Repository
+			result2 *github.Response
+			result3 error
+		})
+	}
+	fake.listTeamReposBySlugReturnsOnCall[i] = struct {
+		result1 []*github.Repository
+		result2 *github.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
 func (fake *TeamsClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.getTeamMembershipBySlugMutex.RLock()
 	defer fake.getTeamMembershipBySlugMutex.RUnlock()
+	fake.listTeamReposBySlugMutex.RLock()
+	defer fake.listTeamReposBySlugMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
