@@ -22,19 +22,21 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v41/github"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
-
-const org = "lindluni-enterprise"
 
 //go:generate counterfeiter -generate
 
@@ -73,6 +75,8 @@ type manager struct {
 	repositoriesClient repositoriesClient
 	teamsClient        teamsClient
 
+	config *config
+
 	createMaintainershipClient func(string) (*maintainershipClient, error)
 }
 
@@ -100,7 +104,7 @@ func (m *manager) verifyMaintainership(token, team string) (bool, error) {
 		return false, fmt.Errorf("failed retrieving authenticated users data")
 	}
 
-	membership, resp, err := client.teamsClient.GetTeamMembershipBySlug(ctx, org, team, user.GetLogin())
+	membership, resp, err := client.teamsClient.GetTeamMembershipBySlug(ctx, m.config.Org, team, user.GetLogin())
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return false, fmt.Errorf("unable to locate team %s", team)
@@ -112,7 +116,7 @@ func (m *manager) verifyMaintainership(token, team string) (bool, error) {
 
 func (m *manager) retrieveGroupID(name string) (*int64, error) {
 	ctx := context.Background()
-	groups, _, err := m.actionsClient.ListOrganizationRunnerGroups(ctx, org, &github.ListOptions{PerPage: 100})
+	groups, _, err := m.actionsClient.ListOrganizationRunnerGroups(ctx, m.config.Org, &github.ListOptions{PerPage: 100})
 	if err != nil {
 		return nil, fmt.Errorf("failed querying organization runner groups: %w", err)
 	}
@@ -151,7 +155,7 @@ func (m *manager) doGroupCreate(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := context.Background()
-	group, resp, err := m.actionsClient.CreateOrganizationRunnerGroup(ctx, org, github.CreateRunnerGroupRequest{
+	group, resp, err := m.actionsClient.CreateOrganizationRunnerGroup(ctx, m.config.Org, github.CreateRunnerGroupRequest{
 		Name:                     github.String(team),
 		Visibility:               github.String("selected"),
 		AllowsPublicRepositories: github.Bool(false),
@@ -210,7 +214,7 @@ func (m *manager) doGroupDelete(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := context.Background()
-	_, err = m.actionsClient.DeleteOrganizationRunnerGroup(ctx, org, *id)
+	_, err = m.actionsClient.DeleteOrganizationRunnerGroup(ctx, m.config.Org, *id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -264,7 +268,7 @@ func (m *manager) doGroupList(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := context.Background()
-	runners, _, err := m.actionsClient.ListRunnerGroupRunners(ctx, org, *id, &github.ListOptions{PerPage: 100})
+	runners, _, err := m.actionsClient.ListRunnerGroupRunners(ctx, m.config.Org, *id, &github.ListOptions{PerPage: 100})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -274,7 +278,7 @@ func (m *manager) doGroupList(w http.ResponseWriter, req *http.Request) {
 		filteredRunners = append(filteredRunners, runner.GetName())
 	}
 
-	repos, _, err := m.actionsClient.ListRepositoryAccessRunnerGroup(ctx, org, *id, &github.ListOptions{PerPage: 100})
+	repos, _, err := m.actionsClient.ListRepositoryAccessRunnerGroup(ctx, m.config.Org, *id, &github.ListOptions{PerPage: 100})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -330,7 +334,7 @@ func (m *manager) doTokenRegister(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := context.Background()
-	registrationToken, _, err := m.actionsClient.CreateOrganizationRegistrationToken(ctx, org)
+	registrationToken, _, err := m.actionsClient.CreateOrganizationRegistrationToken(ctx, m.config.Org)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -370,7 +374,7 @@ func (m *manager) doTokenRemove(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := context.Background()
-	deregistrationToken, _, err := m.actionsClient.CreateOrganizationRemoveToken(ctx, org)
+	deregistrationToken, _, err := m.actionsClient.CreateOrganizationRemoveToken(ctx, m.config.Org)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -424,7 +428,7 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 
 	ctx := context.Background()
 	repoIDs := map[string]int64{}
-	teamRepos, _, err := m.teamsClient.ListTeamReposBySlug(ctx, org, team, &github.ListOptions{PerPage: 100})
+	teamRepos, _, err := m.teamsClient.ListTeamReposBySlug(ctx, m.config.Org, team, &github.ListOptions{PerPage: 100})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -442,7 +446,7 @@ func (m *manager) doReposAdd(w http.ResponseWriter, req *http.Request) {
 
 	for name, repoID := range repoIDs {
 		log.Infof("Adding repo %s to runner group %s", name, team)
-		_, err = m.actionsClient.AddRepositoryAccessRunnerGroup(ctx, org, *id, repoID)
+		_, err = m.actionsClient.AddRepositoryAccessRunnerGroup(ctx, m.config.Org, *id, repoID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -511,7 +515,7 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
 	repoIDs := map[string]int64{}
 	for _, name := range repoNames {
-		repo, resp, err := m.repositoriesClient.Get(ctx, org, name)
+		repo, resp, err := m.repositoriesClient.Get(ctx, m.config.Org, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				http.Error(w, "Repository not found: "+name, http.StatusNotFound)
@@ -525,7 +529,7 @@ func (m *manager) doReposRemove(w http.ResponseWriter, req *http.Request) {
 
 	for name, repoID := range repoIDs {
 		log.Infof("Removing repo %s from runner group %s", name, team)
-		_, err = m.actionsClient.RemoveRepositoryAccessRunnerGroup(ctx, org, *id, repoID)
+		_, err = m.actionsClient.RemoveRepositoryAccessRunnerGroup(ctx, m.config.Org, *id, repoID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -584,7 +588,7 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
 	var repoIDs []int64
 	for _, name := range repoNames {
-		repo, resp, err := m.repositoriesClient.Get(ctx, org, name)
+		repo, resp, err := m.repositoriesClient.Get(ctx, m.config.Org, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				http.Error(w, "Repository not found: "+name, http.StatusNotFound)
@@ -596,7 +600,7 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 		repoIDs = append(repoIDs, repo.GetID())
 	}
 
-	_, err = m.actionsClient.SetRepositoryAccessRunnerGroup(ctx, org, *id, github.SetRepoAccessRunnerGroupRequest{
+	_, err = m.actionsClient.SetRepositoryAccessRunnerGroup(ctx, m.config.Org, *id, github.SetRepoAccessRunnerGroupRequest{
 		SelectedRepositoryIDs: repoIDs,
 	})
 	if err != nil {
@@ -614,6 +618,13 @@ func (m *manager) doReposSet(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+type config struct {
+	Org            string `yaml:"org"`
+	AppID          int64  `yaml:"appID"`
+	InstallationID int64  `yaml:"installationID"`
+	PrivateKey     string `yaml:"privateKey"`
+}
+
 func main() {
 	err := os.MkdirAll("logs", os.ModePerm)
 	if err != nil {
@@ -625,14 +636,24 @@ func main() {
 	//}
 	//log.SetOutput(io.MultiWriter(os.Stdout, f))
 	//
+	config := &config{}
+	bytes, err := ioutil.ReadFile("../config.yml")
+	err = yaml.Unmarshal(bytes, &config)
+	if err != nil {
+		panic(err)
+	}
+	privateKey, err := base64.StdEncoding.DecodeString(config.PrivateKey)
+	if err != nil {
+		panic(err)
+	}
+
 	log.Info("Generating GitHub application credentials")
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 145597, 21070181, "../key.pem")
+	itr, err := ghinstallation.New(http.DefaultTransport, config.AppID, config.InstallationID, privateKey)
 	if err != nil {
 		panic("Failed creating app authentication")
 	}
 
 	log.Info("Creating GitHub client")
-
 	client := github.NewClient(&http.Client{Transport: itr})
 	createClient := func(token string) (*maintainershipClient, error) {
 		log.Info("Creating user GitHub client")
@@ -655,6 +676,7 @@ func main() {
 		actionsClient:              client.Actions,
 		repositoriesClient:         client.Repositories,
 		teamsClient:                client.Teams,
+		config:                     config,
 		createMaintainershipClient: createClient,
 	}
 
