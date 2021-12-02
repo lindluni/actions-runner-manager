@@ -60,6 +60,9 @@ func TestDoGroupAdd_Success(t *testing.T) {
 	err = json.Unmarshal(body, &groupAddResponse)
 	require.NoError(t, err)
 	require.Equal(t, expected, groupAddResponse)
+	require.Equal(t, actionsClient.CreateOrganizationRunnerGroupCallCount(), 1)
+	require.Equal(t, teamsClient.GetTeamMembershipBySlugCallCount(), 1)
+	require.Equal(t, usersClient.GetCallCount(), 1)
 }
 
 func TestRetrieveGroupID_Success(t *testing.T) {

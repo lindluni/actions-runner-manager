@@ -71,6 +71,7 @@ type response struct {
 	Message    string
 }
 
+// TODO: Add error paths and return errors
 func (m *manager) verifyMaintainership(token, team string) bool {
 	client := m.createMaintainershipClient(token)
 
