@@ -2,7 +2,6 @@
 SPDX-License-Identifier: Apache-2.0
 */
 
-// TODO: Implement pagination for github calls
 // TODO: Reimplement GETS as POSTS, this will require creating structs to marshal the body into
 // TODO: Add CODEOWNERS and enforce it
 // TODO: Implement rate limits on user
@@ -20,8 +19,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
+	"github.com/didip/tollbooth/v6"
+	"github.com/didip/tollbooth/v6/limiter"
 	"github.com/google/go-github/v41/github"
 	"github.com/lindluni/actions-runner-manager/pkg/apis"
 	"github.com/sirupsen/logrus"
@@ -41,9 +43,13 @@ func main() {
 	}
 	logger.Debug("Created GitHub application installation configuration")
 
-	logger.Debug("Creating GitHub client")
-	client := github.NewClient(&http.Client{Transport: itr})
-	logger.Debug("Created GitHub client")
+	logger.Info("Initializing Rate Limiter")
+	lmt := tollbooth.NewLimiter(5, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
+	lmt.SetHeader("Authorization", []string{})
+	lmt.SetHeaderEntryExpirationTTL(time.Hour)
+	lmt.SetMessage(`{"StatusCode":429,"Response":"You have reached maximum request limit. Please try again in a few seconds."}`)
+	lmt.SetMessageContentType("application/json")
+	logger.Debug("Initialized Rate Limiter")
 
 	logger.Debug("Creating GitHub user client function")
 	createClient := func(token, uuid string) (*apis.MaintainershipClient, error) {
@@ -57,17 +63,22 @@ func main() {
 		logger.WithField("uuid", uuid).Debug("Created GitHub user client")
 
 		logger.WithField("uuid", uuid).Info("Validating Authorization token")
-		rateLimit, _, err := client.RateLimits(context.Background())
-		if err != nil || rateLimit.GetCore().Limit != 5000 {
+		user, _, err := client.Users.Get(context.Background(), "")
+		if err != nil {
 			logger.Errorf("Unable to verify authorization token authenticity: %v", err)
 			return nil, fmt.Errorf("unable to verify authorization token authenticity: %w", err)
 		}
+		lmt.SetBasicAuthUsers(append(lmt.GetBasicAuthUsers(), user.GetLogin()))
 		logger.WithField("uuid", uuid).Debug("Validated Authorization token")
 		return &apis.MaintainershipClient{
 			TeamsClient: client.Teams,
 			UsersClient: client.Users,
 		}, nil
 	}
+
+	logger.Debug("Creating GitHub client")
+	client := github.NewClient(&http.Client{Transport: itr})
+	logger.Debug("Created GitHub client")
 
 	logger.Debug("Creating API manager")
 	manager := &apis.Manager{
@@ -81,14 +92,14 @@ func main() {
 	logger.Debug("Created API manager")
 
 	logger.Info("Initializing API endpoints")
-	http.HandleFunc("/group-create", manager.DoGroupCreate)
-	http.HandleFunc("/group-delete", manager.DoGroupDelete)
-	http.HandleFunc("/group-list", manager.DoGroupList)
-	http.HandleFunc("/repos-add", manager.DoReposAdd)
-	http.HandleFunc("/repos-remove", manager.DoReposRemove)
-	http.HandleFunc("/repos-set", manager.DoReposSet)
-	http.HandleFunc("/token-register", manager.DoTokenRegister)
-	http.HandleFunc("/token-remove", manager.DoTokenRemove)
+	http.Handle("/group-create", tollbooth.LimitFuncHandler(lmt, manager.DoGroupCreate))
+	http.Handle("/group-delete", tollbooth.LimitFuncHandler(lmt, manager.DoGroupDelete))
+	http.Handle("/group-list", tollbooth.LimitFuncHandler(lmt, manager.DoGroupList))
+	http.Handle("/repos-add", tollbooth.LimitFuncHandler(lmt, manager.DoReposAdd))
+	http.Handle("/repos-remove", tollbooth.LimitFuncHandler(lmt, manager.DoReposRemove))
+	http.Handle("/repos-set", tollbooth.LimitFuncHandler(lmt, manager.DoReposSet))
+	http.Handle("/token-register", tollbooth.LimitFuncHandler(lmt, manager.DoTokenRegister))
+	http.Handle("/token-remove", tollbooth.LimitFuncHandler(lmt, manager.DoTokenRemove))
 	logger.Debug("Initialized API endpoints")
 
 	logger.Debug("Compiling HTTP server address")

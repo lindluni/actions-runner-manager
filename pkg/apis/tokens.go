@@ -90,14 +90,14 @@ func (m *Manager) DoTokenRemove(w http.ResponseWriter, req *http.Request) {
 	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Verified maintainership")
 
 	ctx := context.Background()
-	m.Logger.WithField("uuid", id).WithField("team", team).Info("Deleting organization runner registration token")
+	m.Logger.WithField("uuid", id).WithField("team", team).Info("Creating organization runner removal token")
 	removalToken, _, err := m.ActionsClient.CreateOrganizationRemoveToken(ctx, m.Config.Org)
 	if err != nil {
 		message := fmt.Sprintf("Unable to create removal token: %v", err)
 		m.writeResponse(w, http.StatusInternalServerError, message)
 		return
 	}
-	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Deleted organization runner registration token")
+	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Create organization runner removal token")
 
 	response := &response{
 		StatusCode: http.StatusOK,
