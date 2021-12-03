@@ -2,6 +2,7 @@
 SPDX-License-Identifier: Apache-2.0
 */
 
+// TODO: Allow user to override config path with env variable
 // TODO: Implement pagination for github calls
 // TODO: Reimplement GETS as POSTS, this will require creating structs to marshal the body into
 // TODO: Add CODEOWNERS and enforce it
@@ -108,15 +109,22 @@ func main() {
 }
 
 func initConfig() (*apis.Config, []byte) {
+	var bytes []byte
+	var err error
 	logrus.Info("Loading configuration")
-	config := &apis.Config{}
-	bytes, err := ioutil.ReadFile("config.yml")
+	configPath, set := os.LookupEnv("CONFIG_PATH")
+	if set {
+		bytes, err = ioutil.ReadFile(configPath)
+	} else {
+		bytes, err = ioutil.ReadFile("config.yml")
+	}
 	if err != nil {
 		logrus.Fatalf("Unable to parse config file: %v", err)
 	}
 	logrus.Info("Configuration loaded")
 
 	logrus.Info("Parsing configuration")
+	config := &apis.Config{}
 	err = yaml.Unmarshal(bytes, &config)
 	if err != nil {
 		logrus.Fatalf("Unable to parse config file: %v", err)
