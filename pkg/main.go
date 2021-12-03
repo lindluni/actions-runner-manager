@@ -94,9 +94,16 @@ func main() {
 	logger.Debug("Compiling HTTP server address")
 	address := fmt.Sprintf("%s:%d", config.Server.Address, config.Server.Port)
 	logger.Infof("Starting API server on address: %s", address)
-	err = http.ListenAndServe(address, nil)
-	if err != nil {
-		logger.Fatalf("API server failed: %v", err)
+	if config.Server.TLS.Enabled {
+		err = http.ListenAndServeTLS(address, config.Server.TLS.CertFile, config.Server.TLS.KeyFile, nil)
+		if err != nil {
+			logger.Fatalf("API server failed: %v", err)
+		}
+	} else {
+		err = http.ListenAndServe(address, nil)
+		if err != nil {
+			logger.Fatalf("API server failed: %v", err)
+		}
 	}
 }
 
@@ -126,7 +133,6 @@ func initConfig() (*apis.Config, []byte) {
 	if config.Logging.Level == "" {
 		config.Logging.Level = "info"
 	}
-
 	logrus.Info("Configuration validated")
 
 	logrus.Info("Decoding private key")

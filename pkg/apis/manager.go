@@ -59,6 +59,11 @@ type Config struct {
 	Server struct {
 		Address string `yaml:"address"`
 		Port    int    `yaml:"port"`
+		TLS     struct {
+			Enabled  bool   `yaml:"enabled"`
+			CertFile string `yaml:"certFile"`
+			KeyFile  string `yaml:"keyFile"`
+		} `yaml:"tls"`
 	} `yaml:"server"`
 }
 
