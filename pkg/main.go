@@ -20,14 +20,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/sirupsen/logrus/hooks/writer"
-
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/didip/tollbooth/v6"
 	"github.com/didip/tollbooth/v6/limiter"
 	"github.com/google/go-github/v41/github"
 	"github.com/lindluni/actions-runner-manager/pkg/apis"
 	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/writer"
 	"golang.org/x/oauth2"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"gopkg.in/yaml.v3"
