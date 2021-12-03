@@ -4,7 +4,6 @@ SPDX-License-Identifier: Apache-2.0
 
 // TODO: Reimplement GETS as POSTS, this will require creating structs to marshal the body into
 // TODO: Add CODEOWNERS and enforce it
-// TODO: Implement rate limits on user
 // TODO: Require all runners to be deleted or ?transferred? before deleting group or pass force=true parameter
 
 package main
