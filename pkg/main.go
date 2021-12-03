@@ -2,7 +2,6 @@
 SPDX-License-Identifier: Apache-2.0
 */
 
-// TODO: Allow user to override config path with env variable
 // TODO: Implement pagination for github calls
 // TODO: Reimplement GETS as POSTS, this will require creating structs to marshal the body into
 // TODO: Add CODEOWNERS and enforce it

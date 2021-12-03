@@ -63,18 +63,27 @@ func (m *Manager) DoReposAdd(w http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
 	m.Logger.WithField("uuid", id).WithField("team", team).Info("Listing repositories assigned to team")
 	repoIDs := map[string]int64{}
-	teamRepos, _, err := m.TeamsClient.ListTeamReposBySlug(ctx, m.Config.Org, team, &github.ListOptions{PerPage: 100})
-	if err != nil {
-		message := fmt.Sprintf("Unable to retrieve team repos: %v", err)
-		m.writeResponse(w, http.StatusInternalServerError, message)
-		return
+	var repos []*github.Repository
+	opts := &github.ListOptions{PerPage: 100}
+	for {
+		teamRepos, resp, err := m.TeamsClient.ListTeamReposBySlug(ctx, m.Config.Org, team, opts)
+		if err != nil {
+			message := fmt.Sprintf("Unable to retrieve team repos: %v", err)
+			m.writeResponse(w, http.StatusInternalServerError, message)
+			return
+		}
+		repos = append(repos, teamRepos...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
 	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Listed repositories assigned to team")
 
 	m.Logger.WithField("uuid", id).WithField("team", team).Info("Mapping retrieved team repos to submitted repos")
 	for _, name := range repoNames {
 		m.Logger.Infof("Checking if team %s has access to repo %s", team, name)
-		id, err := findRepoID(name, teamRepos)
+		id, err := findRepoID(name, repos)
 		if err != nil {
 			message := fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err)
 			m.writeResponse(w, http.StatusNotFound, message)
@@ -233,11 +242,20 @@ func (m *Manager) DoReposSet(w http.ResponseWriter, req *http.Request) {
 
 	ctx := context.Background()
 	m.Logger.WithField("uuid", id).WithField("team", team).Info("Listing repositories assigned to team")
-	teamRepos, _, err := m.TeamsClient.ListTeamReposBySlug(ctx, m.Config.Org, team, &github.ListOptions{PerPage: 100})
-	if err != nil {
-		message := fmt.Sprintf("Unable to retrieve team repos: %v", err)
-		m.writeResponse(w, http.StatusInternalServerError, message)
-		return
+	var repos []*github.Repository
+	opts := &github.ListOptions{PerPage: 100}
+	for {
+		teamRepos, resp, err := m.TeamsClient.ListTeamReposBySlug(ctx, m.Config.Org, team, opts)
+		if err != nil {
+			message := fmt.Sprintf("Unable to retrieve team repos: %v", err)
+			m.writeResponse(w, http.StatusInternalServerError, message)
+			return
+		}
+		repos = append(repos, teamRepos...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
 	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Listed repositories assigned to team")
 
@@ -245,7 +263,7 @@ func (m *Manager) DoReposSet(w http.ResponseWriter, req *http.Request) {
 	var repoIDs []int64
 	for _, name := range repoNames {
 		m.Logger.Infof("Checking if team %s has access to repo %s", team, name)
-		id, err := findRepoID(name, teamRepos)
+		id, err := findRepoID(name, repos)
 		if err != nil {
 			message := fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err)
 			m.writeResponse(w, http.StatusNotFound, message)

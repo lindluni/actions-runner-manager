@@ -170,31 +170,49 @@ func (m *Manager) DoGroupList(w http.ResponseWriter, req *http.Request) {
 
 	ctx := context.Background()
 	m.Logger.WithField("uuid", id).WithField("team", team).Info("Retrieving runner group runner list")
-	runners, _, err := m.ActionsClient.ListRunnerGroupRunners(ctx, m.Config.Org, *groupID, &github.ListOptions{PerPage: 100})
-	if err != nil {
-		m.writeResponse(w, http.StatusInternalServerError, fmt.Sprintf("Unable to list runners: %v", err))
-		return
+	var runners []*github.Runner
+	opts := &github.ListOptions{PerPage: 100}
+	for {
+		runnerGroupRunners, resp, err := m.ActionsClient.ListRunnerGroupRunners(ctx, m.Config.Org, *groupID, opts)
+		if err != nil {
+			m.writeResponse(w, http.StatusInternalServerError, fmt.Sprintf("Unable to list runners: %v", err))
+			return
+		}
+		runners = append(runners, runnerGroupRunners.Runners...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
 	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Retrieved runner group runner list")
 
 	m.Logger.WithField("uuid", id).WithField("team", team).Info("Generating runner list")
 	var filteredRunners []string
-	for _, runner := range runners.Runners {
+	for _, runner := range runners {
 		filteredRunners = append(filteredRunners, runner.GetName())
 	}
 	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Generated runner list")
 
 	m.Logger.WithField("uuid", id).WithField("team", team).Info("Retrieving runner group repository list")
-	repos, _, err := m.ActionsClient.ListRepositoryAccessRunnerGroup(ctx, m.Config.Org, *groupID, &github.ListOptions{PerPage: 100})
-	if err != nil {
-		m.writeResponse(w, http.StatusInternalServerError, fmt.Sprintf("Unable to list repositories: %v", err))
-		return
+	var repos []*github.Repository
+	opts = &github.ListOptions{PerPage: 100}
+	for {
+		runnerGroupRepos, resp, err := m.ActionsClient.ListRepositoryAccessRunnerGroup(ctx, m.Config.Org, *groupID, opts)
+		if err != nil {
+			m.writeResponse(w, http.StatusInternalServerError, fmt.Sprintf("Unable to list repositories: %v", err))
+			return
+		}
+		repos = append(repos, runnerGroupRepos.Repositories...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
 	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Retrieved runner group repository list")
 
 	m.Logger.WithField("uuid", id).WithField("team", team).Info("Generating repository list")
 	var filteredRepos []string
-	for _, repo := range repos.Repositories {
+	for _, repo := range repos {
 		filteredRepos = append(filteredRepos, repo.GetName())
 	}
 	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Generated repository list")

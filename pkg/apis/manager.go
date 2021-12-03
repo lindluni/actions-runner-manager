@@ -121,14 +121,23 @@ func (m *Manager) verifyMaintainership(token, team, uuid string) (bool, error) {
 func (m *Manager) retrieveGroupID(name, uuid string) (*int64, error) {
 	ctx := context.Background()
 	m.Logger.WithField("uuid", uuid)
-	groups, _, err := m.ActionsClient.ListOrganizationRunnerGroups(ctx, m.Config.Org, &github.ListOptions{PerPage: 100})
-	if err != nil {
-		return nil, fmt.Errorf("failed querying organization runner groups: %w", err)
+	var groups []*github.RunnerGroup
+	opts := &github.ListOptions{PerPage: 100}
+	for {
+		runnerGroups, resp, err := m.ActionsClient.ListOrganizationRunnerGroups(ctx, m.Config.Org, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed querying organization runner groups: %w", err)
+		}
+		groups = append(groups, runnerGroups.RunnerGroups...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
 	m.Logger.WithField("uuid", uuid)
 
 	m.Logger.WithField("uuid", uuid)
-	for _, group := range groups.RunnerGroups {
+	for _, group := range groups {
 		if group.GetName() == name {
 			return group.ID, nil
 		}

@@ -33,7 +33,7 @@ func TestRetrieveGroupID_Success(t *testing.T) {
 	logger, _ := test.NewNullLogger()
 	for _, tc := range tests {
 		client := &mocks.ActionsClient{}
-		client.ListOrganizationRunnerGroupsReturns(tc.input, nil, nil)
+		client.ListOrganizationRunnerGroupsReturns(tc.input, &github.Response{NextPage: 0}, nil)
 		manager := &Manager{
 			ActionsClient: client,
 			Config:        &Config{},
@@ -85,7 +85,7 @@ func TestRetrieveGroupID_Failure(t *testing.T) {
 	logger, _ := test.NewNullLogger()
 	for _, tc := range tests {
 		client := &mocks.ActionsClient{}
-		client.ListOrganizationRunnerGroupsReturns(tc.input, nil, tc.err)
+		client.ListOrganizationRunnerGroupsReturns(tc.input, &github.Response{NextPage: 0}, tc.err)
 		manager := &Manager{
 			ActionsClient: client,
 			Config:        &Config{},
