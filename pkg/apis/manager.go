@@ -88,7 +88,6 @@ type response struct {
 	StatusCode int
 }
 
-// TODO: Add error paths and return errors
 func (m *Manager) verifyMaintainership(token, team, uuid string) (bool, error) {
 	m.Logger.WithField("uuid", uuid)
 	client, err := m.CreateMaintainershipClient(token, uuid)
