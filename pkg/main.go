@@ -20,6 +20,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/sirupsen/logrus/hooks/writer"
+
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/didip/tollbooth/v6"
 	"github.com/didip/tollbooth/v6/limiter"
@@ -179,13 +181,34 @@ func initLogger(config *apis.Config) *logrus.Logger {
 	logger.Debugf("Initializing logger with configuration: %s", string(bytes))
 	if !config.Logging.Ephemeral {
 		logPath := filepath.Join(config.Logging.LogDirectory, "/actions-runner-manager/server.log")
-		logger.SetOutput(io.MultiWriter(os.Stdout, &lumberjack.Logger{
+		rotator := &lumberjack.Logger{
 			Compress:   config.Logging.Compression,
 			Filename:   logPath,
 			MaxBackups: config.Logging.MaxBackups,
 			MaxAge:     config.Logging.MaxAge,
 			MaxSize:    config.Logging.MaxSize,
-		}))
+		}
+		logger.SetOutput(ioutil.Discard)
+		logger.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp: true,
+		})
+		logger.AddHook(&writer.Hook{ // Send logs with level higher than warning to stderr
+			Writer: io.MultiWriter(os.Stderr, rotator),
+			LogLevels: []logrus.Level{
+				logrus.PanicLevel,
+				logrus.FatalLevel,
+				logrus.ErrorLevel,
+				logrus.WarnLevel,
+			},
+		})
+		logger.AddHook(&writer.Hook{ // Send info and debug logs to stdout
+			Writer: io.MultiWriter(os.Stdout, rotator),
+			LogLevels: []logrus.Level{
+				logrus.InfoLevel,
+				logrus.DebugLevel,
+			},
+		})
+
 	}
 	logger.Debug("Logger initialized")
 	return logger
