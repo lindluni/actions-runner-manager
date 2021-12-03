@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/sirupsen/logrus/hooks/test"
+
 	"github.com/google/go-github/v41/github"
 	"github.com/lindluni/actions-runner-manager/pkg/apis/mocks"
 	"github.com/stretchr/testify/require"
@@ -28,16 +30,18 @@ func TestRetrieveGroupID_Success(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	logger, _ := test.NewNullLogger()
+	for _, tc := range tests {
 		client := &mocks.ActionsClient{}
-		client.ListOrganizationRunnerGroupsReturns(test.input, nil, nil)
+		client.ListOrganizationRunnerGroupsReturns(tc.input, nil, nil)
 		manager := &Manager{
 			ActionsClient: client,
 			Config:        &Config{},
+			Logger:        logger,
 		}
 		id, err := manager.retrieveGroupID("fake-runner-group-name")
 		require.NoError(t, err)
-		require.Equal(t, test.expected, id)
+		require.Equal(t, tc.expected, id)
 		require.Equal(t, client.ListOrganizationRunnerGroupsCallCount(), 1)
 	}
 }
@@ -78,16 +82,18 @@ func TestRetrieveGroupID_Failure(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	logger, _ := test.NewNullLogger()
+	for _, tc := range tests {
 		client := &mocks.ActionsClient{}
-		client.ListOrganizationRunnerGroupsReturns(test.input, nil, test.err)
+		client.ListOrganizationRunnerGroupsReturns(tc.input, nil, tc.err)
 		manager := &Manager{
 			ActionsClient: client,
 			Config:        &Config{},
+			Logger:        logger,
 		}
 		id, err := manager.retrieveGroupID("fake-runner-group-name")
-		require.EqualError(t, err, test.errString)
-		require.Nil(t, test.expected, id)
+		require.EqualError(t, err, tc.errString)
+		require.Nil(t, tc.expected, id)
 		require.Equal(t, client.ListOrganizationRunnerGroupsCallCount(), 1)
 	}
 }

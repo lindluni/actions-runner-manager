@@ -2,6 +2,7 @@ package apis
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -118,4 +119,17 @@ func (m *Manager) retrieveGroupID(name string) (*int64, error) {
 		}
 	}
 	return nil, fmt.Errorf("unable to locate runner group with name %s", name)
+}
+
+func (m *Manager) writeResponse(w http.ResponseWriter, status int, message string) {
+	m.Logger.Error(message)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(&response{
+		StatusCode: status,
+		Message:    message,
+	})
+	if err != nil {
+		m.Logger.Error(err)
+	}
 }

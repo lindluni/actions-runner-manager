@@ -2,7 +2,6 @@ package apis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,39 +12,39 @@ import (
 func (m *Manager) DoReposAdd(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
-		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: team")
 		return
 	}
 	team := teamParam[0]
 
 	reposParam := req.URL.Query()["repos"]
 	if len(reposParam) != 1 {
-		http.Error(w, "Missing required parameter: repos", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: repos")
 		return
 	}
 	repoNames := strings.Split(reposParam[0], ",")
 
 	token := req.Header.Get("Authorization")
 	if token == "" {
-		http.Error(w, "authorization header missing", http.StatusForbidden)
+		m.writeResponse(w, http.StatusBadRequest, "Missing Authorization header")
 		return
 	}
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		m.Logger.Error(err)
-		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		message := fmt.Sprintf("Unable to validate user is a team maintainer: %v", err)
+		m.writeResponse(w, http.StatusForbidden, message)
 		return
 	}
 	if !isMaintainer {
-		m.Logger.Error("User is not a maintainer of the team")
-		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		m.writeResponse(w, http.StatusUnauthorized, "User is not a maintainer of the team")
 		return
 	}
 
 	id, err := m.retrieveGroupID(team)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		message := fmt.Sprintf("Unable to retrieve group ID: %v", err)
+		m.writeResponse(w, http.StatusInternalServerError, message)
 		return
 	}
 
@@ -53,15 +52,16 @@ func (m *Manager) DoReposAdd(w http.ResponseWriter, req *http.Request) {
 	repoIDs := map[string]int64{}
 	teamRepos, _, err := m.TeamsClient.ListTeamReposBySlug(ctx, m.Config.Org, team, &github.ListOptions{PerPage: 100})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		message := fmt.Sprintf("Unable to retrieve team repos: %v", err)
+		m.writeResponse(w, http.StatusInternalServerError, message)
 		return
 	}
 	for _, name := range repoNames {
 		m.Logger.Infof("Checking if team %s has access to repo %s", team, name)
 		id, err := findRepoID(name, teamRepos)
 		if err != nil {
-			m.Logger.Errorf("Team %s has no access to repo %s", team, name)
-			http.Error(w, fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err), http.StatusNotFound)
+			message := fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err)
+			m.writeResponse(w, http.StatusNotFound, message)
 			return
 		}
 		repoIDs[name] = id
@@ -71,58 +71,51 @@ func (m *Manager) DoReposAdd(w http.ResponseWriter, req *http.Request) {
 		m.Logger.Infof("Adding repo %s to runner group %s", name, team)
 		_, err = m.ActionsClient.AddRepositoryAccessRunnerGroup(ctx, m.Config.Org, *id, repoID)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			message := fmt.Sprintf("Unable to add repo %s to runner group %s: %v", name, team, err)
+			m.writeResponse(w, http.StatusInternalServerError, message)
 			return
 		}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(&response{
-		StatusCode: http.StatusOK,
-		Message:    "Successfully added repositories to runner group",
-	})
-	if err != nil {
-		m.Logger.Error(err)
-	}
+	m.writeResponse(w, http.StatusOK, "Successfully added repositories to runner group")
 }
 
 func (m *Manager) DoReposRemove(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
-		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: team")
 		return
 	}
 	team := teamParam[0]
 
 	reposParam := req.URL.Query()["repos"]
 	if len(reposParam) != 1 {
-		http.Error(w, "Missing required parameter: repos", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: repos")
 		return
 	}
 	repoNames := strings.Split(reposParam[0], ",")
 
 	token := req.Header.Get("Authorization")
 	if token == "" {
-		http.Error(w, "authorization header missing", http.StatusForbidden)
+		m.writeResponse(w, http.StatusBadRequest, "Missing Authorization header")
 		return
 	}
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		m.Logger.Error(err)
-		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		message := fmt.Sprintf("Unable to validate user is a team maintainer: %v", err)
+		m.writeResponse(w, http.StatusForbidden, message)
 		return
 	}
 	if !isMaintainer {
-		m.Logger.Error("User is not a maintainer of the team")
-		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		m.writeResponse(w, http.StatusUnauthorized, "User is not a maintainer of the team")
 		return
 	}
 
 	id, err := m.retrieveGroupID(team)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		message := fmt.Sprintf("Unable to retrieve group ID: %v", err)
+		m.writeResponse(w, http.StatusInternalServerError, message)
 		return
 	}
 
@@ -132,10 +125,12 @@ func (m *Manager) DoReposRemove(w http.ResponseWriter, req *http.Request) {
 		repo, resp, err := m.RepositoriesClient.Get(ctx, m.Config.Org, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				http.Error(w, "Repository not found: "+name, http.StatusNotFound)
+				message := fmt.Sprintf("Repository %s not found", name)
+				m.writeResponse(w, http.StatusNotFound, message)
 				return
 			}
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			message := fmt.Sprintf("Unable to retrieve repository %s: %v", name, err)
+			m.writeResponse(w, http.StatusInternalServerError, message)
 			return
 		}
 		repoIDs[name] = repo.GetID()
@@ -145,57 +140,50 @@ func (m *Manager) DoReposRemove(w http.ResponseWriter, req *http.Request) {
 		m.Logger.Infof("Removing repo %s from runner group %s", name, team)
 		_, err = m.ActionsClient.RemoveRepositoryAccessRunnerGroup(ctx, m.Config.Org, *id, repoID)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			message := fmt.Sprintf("Unable to remove repo %s from runner group %s: %v", name, team, err)
+			m.writeResponse(w, http.StatusInternalServerError, message)
 		}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(&response{
-		StatusCode: http.StatusOK,
-		Message:    "Successfully removed repositories from runner group",
-	})
-	if err != nil {
-		m.Logger.Error(err)
-	}
+	m.writeResponse(w, http.StatusOK, "Successfully removed repositories from runner group")
 }
 
 func (m *Manager) DoReposSet(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
-		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: team")
 		return
 	}
 	team := teamParam[0]
 
 	reposParam := req.URL.Query()["repos"]
 	if len(reposParam) != 1 {
-		http.Error(w, "Missing required parameter: repos", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: repos")
 		return
 	}
 	repoNames := strings.Split(reposParam[0], ",")
 
 	token := req.Header.Get("Authorization")
 	if token == "" {
-		http.Error(w, "authorization header missing", http.StatusForbidden)
+		m.writeResponse(w, http.StatusBadRequest, "Missing Authorization header")
 		return
 	}
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		m.Logger.Error(err)
-		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		message := fmt.Sprintf("Unable to validate user is a team maintainer: %v", err)
+		m.writeResponse(w, http.StatusForbidden, message)
 		return
 	}
 	if !isMaintainer {
-		m.Logger.Error("User is not a maintainer of the team")
-		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		m.writeResponse(w, http.StatusUnauthorized, "User is not a maintainer of the team")
 		return
 	}
 
 	id, err := m.retrieveGroupID(team)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		message := fmt.Sprintf("Unable to retrieve group ID: %v", err)
+		m.writeResponse(w, http.StatusInternalServerError, message)
 		return
 	}
 
@@ -205,10 +193,12 @@ func (m *Manager) DoReposSet(w http.ResponseWriter, req *http.Request) {
 		repo, resp, err := m.RepositoriesClient.Get(ctx, m.Config.Org, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				http.Error(w, "Repository not found: "+name, http.StatusNotFound)
+				message := fmt.Sprintf("Repository %s not found", name)
+				m.writeResponse(w, http.StatusNotFound, message)
 				return
 			}
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			message := fmt.Sprintf("Unable to retrieve repository %s: %v", name, err)
+			m.writeResponse(w, http.StatusInternalServerError, message)
 			return
 		}
 		repoIDs = append(repoIDs, repo.GetID())
@@ -218,18 +208,11 @@ func (m *Manager) DoReposSet(w http.ResponseWriter, req *http.Request) {
 		SelectedRepositoryIDs: repoIDs,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		message := fmt.Sprintf("Unable to set repositories for runner group %s: %v", team, err)
+		m.writeResponse(w, http.StatusInternalServerError, message)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(&response{
-		StatusCode: http.StatusOK,
-		Message:    "Successfully replaced all repositories in runner group",
-	})
-	if err != nil {
-		m.Logger.Error(err)
-	}
+	m.writeResponse(w, http.StatusOK, "Successfully set repositories for runner group")
 }
 
 func findRepoID(name string, teamRepos []*github.Repository) (int64, error) {

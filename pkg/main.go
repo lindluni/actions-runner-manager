@@ -2,11 +2,8 @@
 SPDX-License-Identifier: Apache-2.0
 */
 
-// TODO: Allow file logging or stdout logging or both via config
-// TODO: Figure out a way to pull the org from the app or via config
 // TODO: Implement better logging as a library?
 // TODO: Implement pagination for github calls
-// TODO: Add License and headers to all files
 // TODO: Improve logging context
 // TODO: Reimplement GETS as POSTS, this will require creating structs to marshal the body into
 // TODO: Add CODEOWNERS and enforce it
@@ -15,7 +12,7 @@ SPDX-License-Identifier: Apache-2.0
 // TODO: Implement rate limits on user
 // TODO: All responses, including errors should be JSON responses
 // TODO: Check team is assigned to repo for add/delete/set
-// TODO: Require all runners to be deleted before deleting group or pass force=true parameter
+// TODO: Require all runners to be deleted or ?transferred? before deleting group or pass force=true parameter
 
 package main
 
@@ -46,7 +43,7 @@ func main() {
 	logger.Debug("Creating GitHub application installation configuration")
 	itr, err := ghinstallation.New(http.DefaultTransport, config.AppID, config.InstallationID, privateKey)
 	if err != nil {
-		logger.Fatalf("Failed creating app authentication: %+v", err)
+		logger.Fatalf("Failed creating app authentication: %v", err)
 	}
 	logger.Debug("Created GitHub application installation configuration")
 
@@ -68,7 +65,7 @@ func main() {
 		logger.Info("Validating Authorization token")
 		rateLimit, _, err := client.RateLimits(context.Background())
 		if err != nil || rateLimit.GetCore().Limit != 5000 {
-			logger.Errorf("Unable to verify authorization token authenticity: %+v", err)
+			logger.Errorf("Unable to verify authorization token authenticity: %v", err)
 			return nil, fmt.Errorf("unable to verify authorization token authenticity: %w", err)
 		}
 		logger.Debug("Validated Authorization token")
@@ -105,7 +102,7 @@ func main() {
 	logger.Infof("Starting API server on address: %s", address)
 	err = http.ListenAndServe(address, nil)
 	if err != nil {
-		logger.Fatalf("API server failed: %+v", err)
+		logger.Fatalf("API server failed: %v", err)
 	}
 }
 
@@ -114,14 +111,14 @@ func initConfig() (*apis.Config, []byte) {
 	config := &apis.Config{}
 	bytes, err := ioutil.ReadFile("config.yml")
 	if err != nil {
-		logrus.Fatalf("Unable to parse config file: %+v", err)
+		logrus.Fatalf("Unable to parse config file: %v", err)
 	}
 	logrus.Info("Configuration loaded")
 
 	logrus.Info("Parsing configuration")
 	err = yaml.Unmarshal(bytes, &config)
 	if err != nil {
-		logrus.Fatalf("Unable to parse config file: %+v", err)
+		logrus.Fatalf("Unable to parse config file: %v", err)
 	}
 	logrus.Info("Configuration parsed")
 
@@ -141,7 +138,7 @@ func initConfig() (*apis.Config, []byte) {
 	logrus.Info("Decoding private key")
 	privateKey, err := base64.StdEncoding.DecodeString(config.PrivateKey)
 	if err != nil {
-		logrus.Fatalf("Unable to decode private key from base64: %+v", err)
+		logrus.Fatalf("Unable to decode private key from base64: %v", err)
 	}
 	logrus.Info("Private key decoded")
 	return config, privateKey
@@ -151,18 +148,18 @@ func initLogger(config *apis.Config) *logrus.Logger {
 	logger := logrus.New()
 	level, err := logrus.ParseLevel(config.Logging.Level)
 	if err != nil {
-		logrus.Fatalf("Unable to parse logging level: %+v", err)
+		logrus.Fatalf("Unable to parse logging level: %v", err)
 	}
 	logger.SetLevel(level)
 
 	logger.Debug("Marshalling logging configuration")
 	bytes, err := json.Marshal(config.Logging)
 	if err != nil {
-		logger.Fatalf("Unable to marshal logging configuration: %+v", err)
+		logger.Fatalf("Unable to marshal logging configuration: %v", err)
 	}
 	logger.Debug("Marshalled logging configuration")
 
-	logger.Debug("Initializing logger with configuration: %s", string(bytes))
+	logger.Debugf("Initializing logger with configuration: %s", string(bytes))
 	if !config.Logging.Ephemeral {
 		logPath := filepath.Join(config.Logging.LogDirectory, "/actions-runner-manager/server.log")
 		logger.SetOutput(io.MultiWriter(os.Stdout, &lumberjack.Logger{

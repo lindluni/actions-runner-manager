@@ -10,79 +10,81 @@ import (
 func (m *Manager) DoTokenRegister(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
-		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: team")
 		return
 	}
 	team := teamParam[0]
 
 	token := req.Header.Get("Authorization")
 	if token == "" {
-		http.Error(w, "authorization header missing", http.StatusForbidden)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: token")
 		return
 	}
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		m.Logger.Error(err)
-		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		message := fmt.Sprintf("Unable to validate user is a team maintainer: %v", err)
+		m.writeResponse(w, http.StatusForbidden, message)
 		return
 	}
 	if !isMaintainer {
-		m.Logger.Error("User is not a maintainer of the team")
-		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		m.writeResponse(w, http.StatusUnauthorized, "User is not a maintainer of the team")
 		return
 	}
 
 	ctx := context.Background()
 	registrationToken, _, err := m.ActionsClient.CreateOrganizationRegistrationToken(ctx, m.Config.Org)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		message := fmt.Sprintf("Unable to create registration token: %v", err)
+		m.writeResponse(w, http.StatusInternalServerError, message)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(registrationToken)
+
+	bytes, err := json.Marshal(registrationToken)
 	if err != nil {
-		m.Logger.Error(err)
+		m.writeResponse(w, http.StatusInternalServerError, "Unable to marshal registration token")
+		return
 	}
+	m.writeResponse(w, http.StatusOK, string(bytes))
 }
 
 func (m *Manager) DoTokenRemove(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
-		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: team")
 		return
 	}
 	team := teamParam[0]
 
 	token := req.Header.Get("Authorization")
 	if token == "" {
-		http.Error(w, "authorization header missing", http.StatusForbidden)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: token")
 		return
 	}
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		m.Logger.Error(err)
-		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		message := fmt.Sprintf("Unable to validate user is a team maintainer: %v", err)
+		m.writeResponse(w, http.StatusForbidden, message)
 		return
 	}
 	if !isMaintainer {
-		m.Logger.Error("User is not a maintainer of the team")
-		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		m.writeResponse(w, http.StatusUnauthorized, "User is not a maintainer of the team")
 		return
 	}
 
 	ctx := context.Background()
 	removalToken, _, err := m.ActionsClient.CreateOrganizationRemoveToken(ctx, m.Config.Org)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		message := fmt.Sprintf("Unable to create removal token: %v", err)
+		m.writeResponse(w, http.StatusInternalServerError, message)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(removalToken)
+
+	bytes, err := json.Marshal(removalToken)
 	if err != nil {
-		m.Logger.Error(err)
+		m.writeResponse(w, http.StatusInternalServerError, "Unable to marshal removal token")
+		return
 	}
+	m.writeResponse(w, http.StatusOK, string(bytes))
 }

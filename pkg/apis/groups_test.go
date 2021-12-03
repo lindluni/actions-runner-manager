@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/go-github/v41/github"
 	"github.com/lindluni/actions-runner-manager/pkg/apis/mocks"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,6 +21,7 @@ func TestDoGroupAdd_Success(t *testing.T) {
 	actionsClient := &mocks.ActionsClient{}
 	teamsClient := &mocks.TeamsClient{}
 	usersClient := &mocks.UsersClient{}
+	logger, _ := test.NewNullLogger()
 	manager := &Manager{
 		ActionsClient: actionsClient,
 		Config:        &Config{},
@@ -29,6 +31,7 @@ func TestDoGroupAdd_Success(t *testing.T) {
 				UsersClient: usersClient,
 			}, nil
 		},
+		Logger: logger,
 	}
 
 	runnerGroup := &github.RunnerGroup{

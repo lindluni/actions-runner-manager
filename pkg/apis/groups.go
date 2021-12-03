@@ -17,26 +17,25 @@ type listResponse struct {
 func (m *Manager) DoGroupCreate(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
-		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: team")
 		return
 	}
 	team := teamParam[0]
 
 	token := req.Header.Get("Authorization")
 	if token == "" {
-		http.Error(w, "authorization header missing", http.StatusForbidden)
+		m.writeResponse(w, http.StatusForbidden, "Missing Authorization header")
 		return
 	}
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		m.Logger.Error(err)
-		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v", err), http.StatusForbidden)
+		message := fmt.Sprintf("Unable to validate user is a team maintainer: %v", err)
+		m.writeResponse(w, http.StatusForbidden, message)
 		return
 	}
 	if !isMaintainer {
-		m.Logger.Error("User is not a maintainer of the team")
-		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		m.writeResponse(w, http.StatusUnauthorized, "User is not a maintainer of the team")
 		return
 	}
 
@@ -48,110 +47,94 @@ func (m *Manager) DoGroupCreate(w http.ResponseWriter, req *http.Request) {
 	})
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusConflict {
-			errMsg := "Runner group already exists: " + team
-			http.Error(w, errMsg, http.StatusConflict)
+			message := fmt.Sprintf("Runner group already exists: %s", team)
+			m.writeResponse(w, http.StatusConflict, message)
 			return
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		message := fmt.Sprintf("Unable to create runner group: %v", err)
+		m.writeResponse(w, http.StatusInternalServerError, message)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(&response{
-		StatusCode: http.StatusOK,
-		Message:    fmt.Sprintf("Runner group created successfully: %s", group.GetName()),
-	})
-	if err != nil {
-		m.Logger.Error(err)
-	}
+	m.writeResponse(w, http.StatusOK, fmt.Sprintf("Runner group created successfully: %s", group.GetName()))
 }
 
 func (m *Manager) DoGroupDelete(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
-		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: team")
 		return
 	}
 	team := teamParam[0]
 
 	token := req.Header.Get("Authorization")
 	if token == "" {
-		http.Error(w, "authorization header missing", http.StatusForbidden)
+		m.writeResponse(w, http.StatusForbidden, "Missing Authorization header")
 		return
 	}
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		m.Logger.Error(err)
-		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		message := fmt.Sprintf("Unable to validate user is a team maintainer: %v", err)
+		m.writeResponse(w, http.StatusForbidden, message)
 		return
 	}
 	if !isMaintainer {
-		m.Logger.Error("User is not a maintainer of the team")
-		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		m.writeResponse(w, http.StatusUnauthorized, "User is not a maintainer of the team")
 		return
 	}
 
 	id, err := m.retrieveGroupID(team)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		m.writeResponse(w, http.StatusInternalServerError, fmt.Sprintf("Unable to retrieve group ID: %v", err))
 		return
 	}
 
 	ctx := context.Background()
 	_, err = m.ActionsClient.DeleteOrganizationRunnerGroup(ctx, m.Config.Org, *id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		m.writeResponse(w, http.StatusInternalServerError, fmt.Sprintf("Unable to delete runner group: %v", err))
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(&response{
-		StatusCode: http.StatusOK,
-		Message:    fmt.Sprintf("Runner group deleted successfully: %s", team),
-	})
-	if err != nil {
-		m.Logger.Error(err)
-	}
+
+	m.writeResponse(w, http.StatusOK, fmt.Sprintf("Runner group deleted successfully: %s", team))
 }
 
 func (m *Manager) DoGroupList(w http.ResponseWriter, req *http.Request) {
 	teamParam := req.URL.Query()["team"]
 	if len(teamParam) != 1 {
-		http.Error(w, "Missing required parameter: team", http.StatusBadRequest)
+		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: team")
 		return
 	}
 	team := teamParam[0]
 
 	token := req.Header.Get("Authorization")
 	if token == "" {
-		http.Error(w, "authorization header missing", http.StatusForbidden)
+		m.writeResponse(w, http.StatusForbidden, "Missing Authorization header")
 		return
 	}
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		m.Logger.Error(err)
-		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
+		message := fmt.Sprintf("Unable to validate user is a team maintainer: %v", err)
+		m.writeResponse(w, http.StatusForbidden, message)
 		return
 	}
 	if !isMaintainer {
-		m.Logger.Error("User is not a maintainer of the team")
-		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
+		m.writeResponse(w, http.StatusUnauthorized, "User is not a maintainer of the team")
 		return
 	}
 
 	id, err := m.retrieveGroupID(team)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		m.writeResponse(w, http.StatusInternalServerError, fmt.Sprintf("Unable to retrieve group ID: %v", err))
 		return
 	}
 
 	ctx := context.Background()
 	runners, _, err := m.ActionsClient.ListRunnerGroupRunners(ctx, m.Config.Org, *id, &github.ListOptions{PerPage: 100})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		m.writeResponse(w, http.StatusInternalServerError, fmt.Sprintf("Unable to list runners: %v", err))
 		return
 	}
 	var filteredRunners []string
@@ -161,7 +144,7 @@ func (m *Manager) DoGroupList(w http.ResponseWriter, req *http.Request) {
 
 	repos, _, err := m.ActionsClient.ListRepositoryAccessRunnerGroup(ctx, m.Config.Org, *id, &github.ListOptions{PerPage: 100})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		m.writeResponse(w, http.StatusInternalServerError, fmt.Sprintf("Unable to list repositories: %v", err))
 		return
 	}
 	var filteredRepos []string
@@ -180,10 +163,11 @@ func (m *Manager) DoGroupList(w http.ResponseWriter, req *http.Request) {
 		listResponse.Runners = []string{}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(listResponse)
+	message, err := json.Marshal(listResponse)
 	if err != nil {
-		m.Logger.Error(err)
+		m.writeResponse(w, http.StatusInternalServerError, fmt.Sprintf("Unable to marshal response: %v", err))
+		return
 	}
+
+	m.writeResponse(w, http.StatusOK, string(message))
 }
