@@ -231,6 +231,30 @@ func (m *Manager) DoReposSet(w http.ResponseWriter, req *http.Request) {
 	}
 	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Verified maintainership")
 
+	ctx := context.Background()
+	m.Logger.WithField("uuid", id).WithField("team", team).Info("Listing repositories assigned to team")
+	teamRepos, _, err := m.TeamsClient.ListTeamReposBySlug(ctx, m.Config.Org, team, &github.ListOptions{PerPage: 100})
+	if err != nil {
+		message := fmt.Sprintf("Unable to retrieve team repos: %v", err)
+		m.writeResponse(w, http.StatusInternalServerError, message)
+		return
+	}
+	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Listed repositories assigned to team")
+
+	m.Logger.WithField("uuid", id).WithField("team", team).Info("Mapping retrieved team repos to submitted repos")
+	var repoIDs []int64
+	for _, name := range repoNames {
+		m.Logger.Infof("Checking if team %s has access to repo %s", team, name)
+		id, err := findRepoID(name, teamRepos)
+		if err != nil {
+			message := fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err)
+			m.writeResponse(w, http.StatusNotFound, message)
+			return
+		}
+		repoIDs = append(repoIDs, id)
+	}
+	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Mapped retrieved team repos to submitted repos")
+
 	m.Logger.WithField("uuid", id).WithField("team", team).Info("Retrieving runner group ID")
 	groupID, err := m.retrieveGroupID(team, id)
 	if err != nil {
@@ -239,25 +263,6 @@ func (m *Manager) DoReposSet(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Retrieved runner group ID")
-
-	ctx := context.Background()
-	m.Logger.WithField("uuid", id).WithField("team", team).Info("Retrieving repository ID's")
-	var repoIDs []int64
-	for _, name := range repoNames {
-		repo, resp, err := m.RepositoriesClient.Get(ctx, m.Config.Org, name)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				message := fmt.Sprintf("Repository %s not found", name)
-				m.writeResponse(w, http.StatusNotFound, message)
-				return
-			}
-			message := fmt.Sprintf("Unable to retrieve repository %s: %v", name, err)
-			m.writeResponse(w, http.StatusInternalServerError, message)
-			return
-		}
-		repoIDs = append(repoIDs, repo.GetID())
-	}
-	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Retrieved repository ID's")
 
 	m.Logger.WithField("uuid", id).WithField("team", team).Info("Adding repositories to runner group")
 	_, err = m.ActionsClient.SetRepositoryAccessRunnerGroup(ctx, m.Config.Org, *groupID, github.SetRepoAccessRunnerGroupRequest{

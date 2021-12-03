@@ -2,16 +2,10 @@
 SPDX-License-Identifier: Apache-2.0
 */
 
-// TODO: Implement better logging as a library?
 // TODO: Implement pagination for github calls
-// TODO: Improve logging context
 // TODO: Reimplement GETS as POSTS, this will require creating structs to marshal the body into
 // TODO: Add CODEOWNERS and enforce it
-// TODO: Write errors as response objects, not http calls
-// TODO: Push authorization header into standalone function
 // TODO: Implement rate limits on user
-// TODO: All responses, including errors should be JSON responses
-// TODO: Check team is assigned to repo for add/delete/set
 // TODO: Require all runners to be deleted or ?transferred? before deleting group or pass force=true parameter
 
 package main
