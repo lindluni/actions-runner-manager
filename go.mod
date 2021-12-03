@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/bradleyfalzon/ghinstallation/v2 v2.0.3
 	github.com/google/go-github/v41 v41.0.0
+	github.com/google/uuid v1.3.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.6.0

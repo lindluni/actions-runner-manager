@@ -52,23 +52,23 @@ func main() {
 	logger.Debug("Created GitHub client")
 
 	logger.Debug("Creating GitHub user client function")
-	createClient := func(token string) (*apis.MaintainershipClient, error) {
-		logger.Info("Creating GitHub user client")
+	createClient := func(token, uuid string) (*apis.MaintainershipClient, error) {
+		logger.WithField("uuid", uuid).Info("Creating GitHub user client")
 		ctx := context.Background()
 		ts := oauth2.StaticTokenSource(
 			&oauth2.Token{AccessToken: token},
 		)
 		tc := oauth2.NewClient(ctx, ts)
 		client := github.NewClient(tc)
-		logger.Debug("Created GitHub user client")
+		logger.WithField("uuid", uuid).Debug("Created GitHub user client")
 
-		logger.Info("Validating Authorization token")
+		logger.WithField("uuid", uuid).Info("Validating Authorization token")
 		rateLimit, _, err := client.RateLimits(context.Background())
 		if err != nil || rateLimit.GetCore().Limit != 5000 {
 			logger.Errorf("Unable to verify authorization token authenticity: %v", err)
 			return nil, fmt.Errorf("unable to verify authorization token authenticity: %w", err)
 		}
-		logger.Debug("Validated Authorization token")
+		logger.WithField("uuid", uuid).Debug("Validated Authorization token")
 		return &apis.MaintainershipClient{
 			TeamsClient: client.Teams,
 			UsersClient: client.Users,

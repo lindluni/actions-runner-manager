@@ -39,7 +39,7 @@ func TestRetrieveGroupID_Success(t *testing.T) {
 			Config:        &Config{},
 			Logger:        logger,
 		}
-		id, err := manager.retrieveGroupID("fake-runner-group-name")
+		id, err := manager.retrieveGroupID("fake-runner-group-name", "fake-uuid")
 		require.NoError(t, err)
 		require.Equal(t, tc.expected, id)
 		require.Equal(t, client.ListOrganizationRunnerGroupsCallCount(), 1)
@@ -91,7 +91,7 @@ func TestRetrieveGroupID_Failure(t *testing.T) {
 			Config:        &Config{},
 			Logger:        logger,
 		}
-		id, err := manager.retrieveGroupID("fake-runner-group-name")
+		id, err := manager.retrieveGroupID("fake-runner-group-name", "fake-uuid")
 		require.EqualError(t, err, tc.errString)
 		require.Nil(t, tc.expected, id)
 		require.Equal(t, client.ListOrganizationRunnerGroupsCallCount(), 1)

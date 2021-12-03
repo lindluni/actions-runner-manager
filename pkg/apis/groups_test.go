@@ -25,7 +25,7 @@ func TestDoGroupAdd_Success(t *testing.T) {
 	manager := &Manager{
 		ActionsClient: actionsClient,
 		Config:        &Config{},
-		CreateMaintainershipClient: func(s string) (*MaintainershipClient, error) {
+		CreateMaintainershipClient: func(string, string) (*MaintainershipClient, error) {
 			return &MaintainershipClient{
 				TeamsClient: teamsClient,
 				UsersClient: usersClient,
@@ -56,7 +56,7 @@ func TestDoGroupAdd_Success(t *testing.T) {
 
 	expected := &response{
 		StatusCode: http.StatusOK,
-		Message:    "Runner group created successfully: fake-runner-group-name",
+		Response:   "Runner group created successfully: fake-runner-group-name",
 	}
 
 	groupAddResponse := &response{}

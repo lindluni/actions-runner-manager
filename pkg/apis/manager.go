@@ -70,7 +70,7 @@ type Manager struct {
 	Config *Config
 	Logger *logrus.Logger
 
-	CreateMaintainershipClient func(string) (*MaintainershipClient, error)
+	CreateMaintainershipClient func(string, string) (*MaintainershipClient, error)
 }
 
 type MaintainershipClient struct {
@@ -79,24 +79,28 @@ type MaintainershipClient struct {
 }
 
 type response struct {
-	Message    string
+	Response   interface{}
 	StatusCode int
 }
 
 // TODO: Add error paths and return errors
-func (m *Manager) verifyMaintainership(token, team string) (bool, error) {
-	client, err := m.CreateMaintainershipClient(token)
+func (m *Manager) verifyMaintainership(token, team, uuid string) (bool, error) {
+	m.Logger.WithField("uuid", uuid)
+	client, err := m.CreateMaintainershipClient(token, uuid)
 	if err != nil {
 		return false, fmt.Errorf("failed retrieving user client: %w", err)
 	}
+	m.Logger.WithField("uuid", uuid)
 
-	m.Logger.Info("Retrieving authorized user metadata")
+	m.Logger.WithField("uuid", uuid).Info("Retrieving authorized user metadata")
 	ctx := context.Background()
 	user, _, err := client.UsersClient.Get(ctx, "")
 	if err != nil {
 		return false, fmt.Errorf("failed retrieving authenticated users data")
 	}
+	m.Logger.WithField("uuid", uuid)
 
+	m.Logger.WithField("uuid", uuid)
 	membership, resp, err := client.TeamsClient.GetTeamMembershipBySlug(ctx, m.Config.Org, team, user.GetLogin())
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
@@ -104,20 +108,28 @@ func (m *Manager) verifyMaintainership(token, team string) (bool, error) {
 		}
 		return false, err
 	}
+	m.Logger.WithField("uuid", uuid)
+
 	return membership.GetRole() == "maintainer", nil
 }
 
-func (m *Manager) retrieveGroupID(name string) (*int64, error) {
+func (m *Manager) retrieveGroupID(name, uuid string) (*int64, error) {
 	ctx := context.Background()
+	m.Logger.WithField("uuid", uuid)
 	groups, _, err := m.ActionsClient.ListOrganizationRunnerGroups(ctx, m.Config.Org, &github.ListOptions{PerPage: 100})
 	if err != nil {
 		return nil, fmt.Errorf("failed querying organization runner groups: %w", err)
 	}
+	m.Logger.WithField("uuid", uuid)
+
+	m.Logger.WithField("uuid", uuid)
 	for _, group := range groups.RunnerGroups {
 		if group.GetName() == name {
 			return group.ID, nil
 		}
 	}
+	m.Logger.WithField("uuid", uuid)
+
 	return nil, fmt.Errorf("unable to locate runner group with name %s", name)
 }
 
@@ -127,8 +139,18 @@ func (m *Manager) writeResponse(w http.ResponseWriter, status int, message strin
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(&response{
 		StatusCode: status,
-		Message:    message,
+		Response:   message,
 	})
+	if err != nil {
+		m.Logger.Error(err)
+	}
+}
+
+func (m *Manager) writeResponseWithUUID(w http.ResponseWriter, response *response, uuid string) {
+	m.Logger.WithField("uuid", uuid).Error(response.Response)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(response)
 	if err != nil {
 		m.Logger.Error(err)
 	}
