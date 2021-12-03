@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/v41/github"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 //go:generate counterfeiter -generate
@@ -46,6 +46,14 @@ type Config struct {
 	AppID          int64  `yaml:"appID"`
 	InstallationID int64  `yaml:"installationID"`
 	PrivateKey     string `yaml:"privateKey"`
+	Logging        struct {
+		Compression  bool   `yaml:"compression"`
+		Ephemeral    bool   `yaml:"ephemeral"`
+		LogDirectory string `yaml:"logDirectory"`
+		MaxAge       int    `yaml:"maxAge"`
+		MaxBackups   int    `yaml:"maxBackups"`
+		MaxSize      int    `yaml:"maxSize"`
+	} `yaml:"logging"`
 }
 
 type Manager struct {
@@ -54,6 +62,7 @@ type Manager struct {
 	TeamsClient        teamsClient
 
 	Config *Config
+	Logger *logrus.Logger
 
 	CreateMaintainershipClient func(string) (*MaintainershipClient, error)
 }
@@ -75,7 +84,7 @@ func (m *Manager) verifyMaintainership(token, team string) (bool, error) {
 		return false, fmt.Errorf("failed retrieving user client: %w", err)
 	}
 
-	log.Info("Retrieving authorized user metadata")
+	m.Logger.Info("Retrieving authorized user metadata")
 	ctx := context.Background()
 	user, _, err := client.UsersClient.Get(ctx, "")
 	if err != nil {

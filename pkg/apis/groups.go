@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/v41/github"
-	log "github.com/sirupsen/logrus"
 )
 
 type listResponse struct {
@@ -31,12 +30,12 @@ func (m *Manager) DoGroupCreate(w http.ResponseWriter, req *http.Request) {
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v", err), http.StatusForbidden)
 		return
 	}
 	if !isMaintainer {
-		log.Error("User is not a maintainer of the team")
+		m.Logger.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
 		return
 	}
@@ -64,7 +63,7 @@ func (m *Manager) DoGroupCreate(w http.ResponseWriter, req *http.Request) {
 		Message:    fmt.Sprintf("Runner group created successfully: %s", group.GetName()),
 	})
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 	}
 }
 
@@ -84,12 +83,12 @@ func (m *Manager) DoGroupDelete(w http.ResponseWriter, req *http.Request) {
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
 		return
 	}
 	if !isMaintainer {
-		log.Error("User is not a maintainer of the team")
+		m.Logger.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
 		return
 	}
@@ -113,7 +112,7 @@ func (m *Manager) DoGroupDelete(w http.ResponseWriter, req *http.Request) {
 		Message:    fmt.Sprintf("Runner group deleted successfully: %s", team),
 	})
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 	}
 }
 
@@ -133,12 +132,12 @@ func (m *Manager) DoGroupList(w http.ResponseWriter, req *http.Request) {
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
 		return
 	}
 	if !isMaintainer {
-		log.Error("User is not a maintainer of the team")
+		m.Logger.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
 		return
 	}
@@ -185,6 +184,6 @@ func (m *Manager) DoGroupList(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(listResponse)
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 	}
 }

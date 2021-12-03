@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v41/github"
-	log "github.com/sirupsen/logrus"
 )
 
 func (m *Manager) DoReposAdd(w http.ResponseWriter, req *http.Request) {
@@ -34,12 +33,12 @@ func (m *Manager) DoReposAdd(w http.ResponseWriter, req *http.Request) {
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
 		return
 	}
 	if !isMaintainer {
-		log.Error("User is not a maintainer of the team")
+		m.Logger.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
 		return
 	}
@@ -58,10 +57,10 @@ func (m *Manager) DoReposAdd(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	for _, name := range repoNames {
-		log.Infof("Checking if team %s has access to repo %s", team, name)
+		m.Logger.Infof("Checking if team %s has access to repo %s", team, name)
 		id, err := findRepoID(name, teamRepos)
 		if err != nil {
-			log.Errorf("Team %s has no access to repo %s", team, name)
+			m.Logger.Errorf("Team %s has no access to repo %s", team, name)
 			http.Error(w, fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err), http.StatusNotFound)
 			return
 		}
@@ -69,7 +68,7 @@ func (m *Manager) DoReposAdd(w http.ResponseWriter, req *http.Request) {
 	}
 
 	for name, repoID := range repoIDs {
-		log.Infof("Adding repo %s to runner group %s", name, team)
+		m.Logger.Infof("Adding repo %s to runner group %s", name, team)
 		_, err = m.ActionsClient.AddRepositoryAccessRunnerGroup(ctx, m.Config.Org, *id, repoID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -84,7 +83,7 @@ func (m *Manager) DoReposAdd(w http.ResponseWriter, req *http.Request) {
 		Message:    "Successfully added repositories to runner group",
 	})
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 	}
 }
 
@@ -111,12 +110,12 @@ func (m *Manager) DoReposRemove(w http.ResponseWriter, req *http.Request) {
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
 		return
 	}
 	if !isMaintainer {
-		log.Error("User is not a maintainer of the team")
+		m.Logger.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
 		return
 	}
@@ -143,7 +142,7 @@ func (m *Manager) DoReposRemove(w http.ResponseWriter, req *http.Request) {
 	}
 
 	for name, repoID := range repoIDs {
-		log.Infof("Removing repo %s from runner group %s", name, team)
+		m.Logger.Infof("Removing repo %s from runner group %s", name, team)
 		_, err = m.ActionsClient.RemoveRepositoryAccessRunnerGroup(ctx, m.Config.Org, *id, repoID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -157,7 +156,7 @@ func (m *Manager) DoReposRemove(w http.ResponseWriter, req *http.Request) {
 		Message:    "Successfully removed repositories from runner group",
 	})
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 	}
 }
 
@@ -184,12 +183,12 @@ func (m *Manager) DoReposSet(w http.ResponseWriter, req *http.Request) {
 
 	isMaintainer, err := m.verifyMaintainership(token, team)
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 		http.Error(w, fmt.Sprintf("Unable to validate user is a team maintainer: %v+", err), http.StatusForbidden)
 		return
 	}
 	if !isMaintainer {
-		log.Error("User is not a maintainer of the team")
+		m.Logger.Error("User is not a maintainer of the team")
 		http.Error(w, "User is not a maintainer of the team", http.StatusForbidden)
 		return
 	}
@@ -229,7 +228,7 @@ func (m *Manager) DoReposSet(w http.ResponseWriter, req *http.Request) {
 		Message:    "Successfully replaced all repositories in runner group",
 	})
 	if err != nil {
-		log.Error(err)
+		m.Logger.Error(err)
 	}
 }
 

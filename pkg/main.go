@@ -2,7 +2,6 @@
 SPDX-License-Identifier: Apache-2.0
 */
 
-// TODO: Do not panic in handlers
 // TODO: Allow file logging or stdout logging or both via config
 // TODO: Figure out a way to pull the org from the app or via config
 // TODO: Implement better logging as a library?
@@ -23,50 +22,37 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v41/github"
 	"github.com/lindluni/actions-runner-manager/pkg/apis"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"gopkg.in/yaml.v3"
 )
 
 func main() {
-	//err := os.MkdirAll("logs", os.ModePerm)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//f, err := os.OpenFile("logs/server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//log.SetOutput(io.MultiWriter(os.Stdout, f))
-	//
-	config := &apis.Config{}
-	bytes, err := ioutil.ReadFile("../config.yml")
-	err = yaml.Unmarshal(bytes, &config)
-	if err != nil {
-		panic(err)
-	}
-	privateKey, err := base64.StdEncoding.DecodeString(config.PrivateKey)
-	if err != nil {
-		panic(err)
-	}
+	config, privateKey := initConfig()
+	logger := initLogger(config)
 
-	log.Info("Generating GitHub application credentials")
+	logger.Info("Generating GitHub application credentials")
 	itr, err := ghinstallation.New(http.DefaultTransport, config.AppID, config.InstallationID, privateKey)
 	if err != nil {
 		panic("Failed creating app authentication")
 	}
 
-	log.Info("Creating GitHub client")
+	logger.Info("Creating GitHub client")
 	client := github.NewClient(&http.Client{Transport: itr})
 	createClient := func(token string) (*apis.MaintainershipClient, error) {
-		log.Info("Creating user GitHub client")
+		logger.Info("Creating user GitHub client")
 		ctx := context.Background()
 		ts := oauth2.StaticTokenSource(
 			&oauth2.Token{AccessToken: token},
@@ -87,6 +73,7 @@ func main() {
 		RepositoriesClient:         client.Repositories,
 		TeamsClient:                client.Teams,
 		Config:                     config,
+		Logger:                     logger,
 		CreateMaintainershipClient: createClient,
 	}
 
@@ -103,4 +90,58 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func initConfig() (*apis.Config, []byte) {
+	logrus.Info("Loading configuration")
+	config := &apis.Config{}
+	bytes, err := ioutil.ReadFile("config.yml")
+	if err != nil {
+		logrus.Fatalf("Unable to parse config file: %+v", err)
+	}
+	logrus.Info("Configuration loaded")
+
+	logrus.Info("Parsing configuration")
+	err = yaml.Unmarshal(bytes, &config)
+	if err != nil {
+		logrus.Fatalf("Unable to parse config file: %+v", err)
+	}
+	logrus.Info("Configuration parsed")
+
+	logrus.Info("Validating configuration")
+	if !config.Logging.Ephemeral {
+		if config.Logging.LogDirectory == "" || config.Logging.MaxSize <= 0 || config.Logging.MaxAge <= 0 {
+			logrus.Fatal("Logging in non-ephemeral mode requires you set the following logging values: logDirectory, maxAge, maxSize")
+		}
+	}
+	logrus.Info("Configuration validated")
+
+	logrus.Info("Decoding private key")
+	privateKey, err := base64.StdEncoding.DecodeString(config.PrivateKey)
+	if err != nil {
+		logrus.Fatalf("Unable to decode private key from base64: %+v", err)
+	}
+	logrus.Info("Private key decoded")
+	return config, privateKey
+}
+
+func initLogger(config *apis.Config) *logrus.Logger {
+	logger := logrus.New()
+	bytes, err := json.Marshal(config.Logging)
+	if err != nil {
+		logger.Fatalf("Unable to marshal logging configuration: %+v", err)
+	}
+	logger.Infof("Initializing logger with configuration: %s", string(bytes))
+	if !config.Logging.Ephemeral {
+		path := filepath.Join(config.Logging.LogDirectory, "/actions-runner-manager/server.log")
+		logger.SetOutput(io.MultiWriter(os.Stdout, &lumberjack.Logger{
+			Compress:   config.Logging.Compression,
+			Filename:   path,
+			MaxBackups: config.Logging.MaxBackups,
+			MaxAge:     config.Logging.MaxAge,
+			MaxSize:    config.Logging.MaxSize,
+		}))
+	}
+	logger.Info("Logger initialized")
+	return logger
 }
