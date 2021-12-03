@@ -142,16 +142,15 @@ func (m *Manager) writeResponse(w http.ResponseWriter, status int, message strin
 		Response:   message,
 	})
 	if err != nil {
-		m.Logger.Error(err)
+		m.Logger.Errorf("Failed encoding response: %v", err)
 	}
 }
 
 func (m *Manager) writeResponseWithUUID(w http.ResponseWriter, response *response, uuid string) {
-	m.Logger.WithField("uuid", uuid).Error(response.Response)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(response)
 	if err != nil {
-		m.Logger.Error(err)
+		m.Logger.WithField("uuid", uuid).Errorf("Failed encoding response: %v", err)
 	}
 }
