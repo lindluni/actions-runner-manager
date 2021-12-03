@@ -12,18 +12,22 @@ go.fqp.goimports     := golang.org/x/tools/cmd/goimports
 go.fqp.golint        := golang.org/x/lint/golint
 go.fqp.staticcheck   := honnef.co/go/tools/cmd/staticcheck
 
+.PHONY: clean
+clean:
+	rm -rf c.out
+
 .PHONY: lint
 lint: tools
 	./scripts/linter.sh
+
+.PHONY: mocks
+mocks: tools
+	go generate ./...
 
 .PHONY: profile
 profile:
 	go test -coverprofile=c.out ./...
 	go tool cover -html=c.out
-
-.PHONY: clean
-clean:
-	rm -rf c.out
 
 .PHONY: tests
 tests: unit-tests
