@@ -43,31 +43,42 @@ func main() {
 	config, privateKey := initConfig()
 	logger := initLogger(config)
 
-	logger.Info("Generating GitHub application credentials")
+	logger.Debug("Creating GitHub application installation configuration")
 	itr, err := ghinstallation.New(http.DefaultTransport, config.AppID, config.InstallationID, privateKey)
 	if err != nil {
-		panic("Failed creating app authentication")
+		logger.Fatalf("Failed creating app authentication: %+v", err)
 	}
+	logger.Debug("Created GitHub application installation configuration")
 
-	logger.Info("Creating GitHub client")
+	logger.Debug("Creating GitHub client")
 	client := github.NewClient(&http.Client{Transport: itr})
+	logger.Debug("Created GitHub client")
+
+	logger.Debug("Creating GitHub user client function")
 	createClient := func(token string) (*apis.MaintainershipClient, error) {
-		logger.Info("Creating user GitHub client")
+		logger.Info("Creating GitHub user client")
 		ctx := context.Background()
 		ts := oauth2.StaticTokenSource(
 			&oauth2.Token{AccessToken: token},
 		)
 		tc := oauth2.NewClient(ctx, ts)
 		client := github.NewClient(tc)
+		logger.Debug("Created GitHub user client")
+
+		logger.Info("Validating Authorization token")
 		rateLimit, _, err := client.RateLimits(context.Background())
 		if err != nil || rateLimit.GetCore().Limit != 5000 {
+			logger.Errorf("Unable to verify authorization token authenticity: %+v", err)
 			return nil, fmt.Errorf("unable to verify authorization token authenticity: %w", err)
 		}
+		logger.Debug("Validated Authorization token")
 		return &apis.MaintainershipClient{
 			TeamsClient: client.Teams,
 			UsersClient: client.Users,
 		}, nil
 	}
+
+	logger.Debug("Creating API manager")
 	manager := &apis.Manager{
 		ActionsClient:              client.Actions,
 		RepositoriesClient:         client.Repositories,
@@ -76,7 +87,9 @@ func main() {
 		Logger:                     logger,
 		CreateMaintainershipClient: createClient,
 	}
+	logger.Debug("Created API manager")
 
+	logger.Info("Initializing API endpoints")
 	http.HandleFunc("/group-create", manager.DoGroupCreate)
 	http.HandleFunc("/group-delete", manager.DoGroupDelete)
 	http.HandleFunc("/group-list", manager.DoGroupList)
@@ -85,10 +98,14 @@ func main() {
 	http.HandleFunc("/repos-set", manager.DoReposSet)
 	http.HandleFunc("/token-register", manager.DoTokenRegister)
 	http.HandleFunc("/token-remove", manager.DoTokenRemove)
+	logger.Debug("Initialized API endpoints")
 
-	err = http.ListenAndServe(":80", nil)
+	logger.Debug("Compiling HTTP server address")
+	address := fmt.Sprintf("%s:%d", config.Server.Address, config.Server.Port)
+	logger.Infof("Starting API server on address: %s", address)
+	err = http.ListenAndServe(address, nil)
 	if err != nil {
-		panic(err)
+		logger.Fatalf("API server failed: %+v", err)
 	}
 }
 
@@ -114,6 +131,11 @@ func initConfig() (*apis.Config, []byte) {
 			logrus.Fatal("Logging in non-ephemeral mode requires you set the following logging values: logDirectory, maxAge, maxSize")
 		}
 	}
+
+	if config.Logging.Level == "" {
+		config.Logging.Level = "info"
+	}
+
 	logrus.Info("Configuration validated")
 
 	logrus.Info("Decoding private key")
@@ -127,21 +149,30 @@ func initConfig() (*apis.Config, []byte) {
 
 func initLogger(config *apis.Config) *logrus.Logger {
 	logger := logrus.New()
+	level, err := logrus.ParseLevel(config.Logging.Level)
+	if err != nil {
+		logrus.Fatalf("Unable to parse logging level: %+v", err)
+	}
+	logger.SetLevel(level)
+
+	logger.Debug("Marshalling logging configuration")
 	bytes, err := json.Marshal(config.Logging)
 	if err != nil {
 		logger.Fatalf("Unable to marshal logging configuration: %+v", err)
 	}
-	logger.Infof("Initializing logger with configuration: %s", string(bytes))
+	logger.Debug("Marshalled logging configuration")
+
+	logger.Debug("Initializing logger with configuration: %s", string(bytes))
 	if !config.Logging.Ephemeral {
-		path := filepath.Join(config.Logging.LogDirectory, "/actions-runner-manager/server.log")
+		logPath := filepath.Join(config.Logging.LogDirectory, "/actions-runner-manager/server.log")
 		logger.SetOutput(io.MultiWriter(os.Stdout, &lumberjack.Logger{
 			Compress:   config.Logging.Compression,
-			Filename:   path,
+			Filename:   logPath,
 			MaxBackups: config.Logging.MaxBackups,
 			MaxAge:     config.Logging.MaxAge,
 			MaxSize:    config.Logging.MaxSize,
 		}))
 	}
-	logger.Info("Logger initialized")
+	logger.Debug("Logger initialized")
 	return logger
 }

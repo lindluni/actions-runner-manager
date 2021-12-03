@@ -49,11 +49,16 @@ type Config struct {
 	Logging        struct {
 		Compression  bool   `yaml:"compression"`
 		Ephemeral    bool   `yaml:"ephemeral"`
+		Level        string `yaml:"level"`
 		LogDirectory string `yaml:"logDirectory"`
 		MaxAge       int    `yaml:"maxAge"`
 		MaxBackups   int    `yaml:"maxBackups"`
 		MaxSize      int    `yaml:"maxSize"`
 	} `yaml:"logging"`
+	Server struct {
+		Address string `yaml:"address"`
+		Port    int    `yaml:"port"`
+	} `yaml:"server"`
 }
 
 type Manager struct {
