@@ -11,13 +11,24 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v41/github"
 	"github.com/lindluni/actions-runner-manager/pkg/apis/mocks"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/require"
 )
 
-func TestDoGroupAdd_Success(t *testing.T) {
+type response struct {
+	Response interface{}
+	Code     int
+}
+
+type errorResponse struct {
+	Error interface{}
+	Code  int
+}
+
+func TestDoGroupCreate_Success(t *testing.T) {
 	actionsClient := &mocks.ActionsClient{}
 	teamsClient := &mocks.TeamsClient{}
 	usersClient := &mocks.UsersClient{}
@@ -44,19 +55,22 @@ func TestDoGroupAdd_Success(t *testing.T) {
 	}
 	teamsClient.GetTeamMembershipBySlugReturns(membership, nil, nil)
 
+	var err error
 	writer := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodGet, "/group-add?team=fake-team", nil)
-	request.Header.Set("AUTHORIZATION", "test-token")
+	context, _ := gin.CreateTestContext(writer)
+	context.Request, err = http.NewRequest(http.MethodGet, "/v1/api/group-add?team=fake-team", nil)
+	context.Request.Header.Set("Authorization", "test-token")
+	require.NoError(t, err)
 
-	manager.DoGroupCreate(writer, request)
+	manager.DoGroupCreate(context)
 	result := writer.Result()
 	body, err := ioutil.ReadAll(result.Body)
 	defer result.Body.Close()
 	require.NoError(t, err)
 
 	expected := &response{
-		StatusCode: http.StatusOK,
-		Response:   "Runner group created successfully: fake-runner-group-name",
+		Code:     http.StatusOK,
+		Response: "Runner group created successfully: fake-runner-group-name",
 	}
 
 	groupAddResponse := &response{}

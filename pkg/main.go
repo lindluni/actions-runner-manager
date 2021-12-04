@@ -2,6 +2,8 @@
 SPDX-License-Identifier: Apache-2.0
 */
 
+// TODO: Ensure all http error response paths return at the end
+
 package main
 
 import (
@@ -19,7 +21,10 @@ import (
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/didip/tollbooth/v6"
 	"github.com/didip/tollbooth/v6/limiter"
+	"github.com/gin-contrib/requestid"
+	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v41/github"
+	"github.com/google/uuid"
 	"github.com/lindluni/actions-runner-manager/pkg/apis"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/writer"
@@ -27,6 +32,10 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 	"gopkg.in/yaml.v3"
 )
+
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
 
 func main() {
 	config, privateKey := initConfig()
@@ -43,7 +52,7 @@ func main() {
 	lmt := tollbooth.NewLimiter(5, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
 	lmt.SetHeader("Authorization", []string{})
 	lmt.SetHeaderEntryExpirationTTL(time.Hour)
-	lmt.SetMessage(`{"StatusCode":429,"Response":"You have reached maximum request limit. Please try again in a few seconds."}`)
+	lmt.SetMessage(`{"code":429,"response":"You have reached maximum request limit. Please try again in a few seconds."}`)
 	lmt.SetMessageContentType("application/json")
 	logger.Debug("Initialized Rate Limiter")
 
@@ -76,11 +85,22 @@ func main() {
 	client := github.NewClient(&http.Client{Transport: itr})
 	logger.Debug("Created GitHub client")
 
+	logger.Info("Initialize Router")
+	router := gin.New()
+	router.Use(requestid.New(requestid.Config{
+		Generator: func() string {
+			return uuid.NewString()
+		},
+	}))
+	router.Use(gin.Logger())
+	logger.Debug("Initialized Router")
+
 	logger.Debug("Creating API manager")
 	manager := &apis.Manager{
 		ActionsClient:              client.Actions,
 		RepositoriesClient:         client.Repositories,
 		TeamsClient:                client.Teams,
+		Router:                     router,
 		Config:                     config,
 		Logger:                     logger,
 		CreateMaintainershipClient: createClient,
@@ -88,28 +108,43 @@ func main() {
 	logger.Debug("Created API manager")
 
 	logger.Info("Initializing API endpoints")
-	http.Handle("/v1/api/group-create", tollbooth.LimitFuncHandler(lmt, manager.DoGroupCreate))
-	http.Handle("/v1/api/group-delete", tollbooth.LimitFuncHandler(lmt, manager.DoGroupDelete))
-	http.Handle("/v1/api/group-list", tollbooth.LimitFuncHandler(lmt, manager.DoGroupList))
-	http.Handle("/v1/api/repos-add", tollbooth.LimitFuncHandler(lmt, manager.DoReposAdd))
-	http.Handle("/v1/api/repos-remove", tollbooth.LimitFuncHandler(lmt, manager.DoReposRemove))
-	http.Handle("/v1/api/repos-set", tollbooth.LimitFuncHandler(lmt, manager.DoReposSet))
-	http.Handle("/v1/api/token-register", tollbooth.LimitFuncHandler(lmt, manager.DoTokenRegister))
-	http.Handle("/v1/api/token-remove", tollbooth.LimitFuncHandler(lmt, manager.DoTokenRemove))
+	v1 := router.Group("/v1/api")
+	{
+		v1.GET("/group-create", LimitHandler(lmt), manager.DoGroupCreate)
+		v1.GET("/group-delete", LimitHandler(lmt), manager.DoGroupDelete)
+		v1.GET("/group-list", LimitHandler(lmt), manager.DoGroupList)
+		v1.GET("/repos-add", LimitHandler(lmt), manager.DoReposAdd)
+		v1.GET("/repos-remove", LimitHandler(lmt), manager.DoReposRemove)
+		v1.GET("/repos-set", LimitHandler(lmt), manager.DoReposSet)
+		v1.GET("/token-register", LimitHandler(lmt), manager.DoTokenRegister)
+		v1.GET("/token-remove", LimitHandler(lmt), manager.DoTokenRemove)
+	}
 	logger.Debug("Initialized API endpoints")
 
 	logger.Debug("Compiling HTTP server address")
 	address := fmt.Sprintf("%s:%d", config.Server.Address, config.Server.Port)
 	logger.Infof("Starting API server on address: %s", address)
 	if config.Server.TLS.Enabled {
-		err = http.ListenAndServeTLS(address, config.Server.TLS.CertFile, config.Server.TLS.KeyFile, nil)
+		err = router.RunTLS(address, config.Server.TLS.CertFile, config.Server.TLS.KeyFile)
 		if err != nil {
 			logger.Fatalf("API server failed: %v", err)
 		}
 	} else {
-		err = http.ListenAndServe(address, nil)
+		err = router.Run(address)
 		if err != nil {
 			logger.Fatalf("API server failed: %v", err)
+		}
+	}
+}
+
+func LimitHandler(lmt *limiter.Limiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		httpError := tollbooth.LimitByRequest(lmt, c.Writer, c.Request)
+		if httpError != nil {
+			c.Data(httpError.StatusCode, lmt.GetMessageContentType(), []byte(httpError.Message))
+			c.Abort()
+		} else {
+			c.Next()
 		}
 	}
 }
@@ -196,7 +231,7 @@ func initLogger(config *apis.Config) *logrus.Logger {
 				logrus.WarnLevel,
 			},
 		})
-		logger.AddHook(&writer.Hook{ // Send info and debug logs to stdout
+		logger.AddHook(&writer.Hook{ // Send info and d	ebug logs to stdout
 			Writer: io.MultiWriter(os.Stdout, rotator),
 			LogLevels: []logrus.Level{
 				logrus.InfoLevel,

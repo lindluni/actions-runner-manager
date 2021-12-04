@@ -55,29 +55,308 @@ curl -H "Authorization: token gh_test-token" https:<host>/v1/api/group-create?te
 
 ---
 
-### `[GET /v1/api/group-delete]`
+### Delete an Organization Runner Group
+
+Deletes an GitHub Actions Organization Runner Group with a slug matching the team slug submitted in the `team` parameter
+
+```
+[GET /v1/api/group-delete]
+```
+
+#### Headers and Input Parameters:
+```text
+Headers:
+-----------
+Authorization: (Required) -- A GitHub Personal Access token belonging to a maintainer of 
+the team parameter
+-----------
+
+Parameters:
+-----------
+team: (Required) -- The canonical team slug of a GitHub Team that the Authenticated user 
+is a maintainer of
+-----------
+```
+
+#### Status Codes:
+```shell
+200 -- Success
+401 -- GitHub Personal Access token is missing or invalid
+403 -- GitHub Team does not exist
+409 -- GitHub Actions runner group already exists
+```
+
+#### Example:
+```shell
+curl -H "Authorization: token gh_test-token" https:<host>/v1/api/group-create?team=test-team
+```
+
+#### Example Response:
+```shell
+{"Response":"Runner group created successfully: test-team","StatusCode":200}
+```
 
 ---
 
+
+### Create a new Organization Runner Group
+
+Creates a new GitHub Actions Organization Runner Group with a slug matching the team slug submitted in the `team` parameter
+
+```
+GET /v1/api/group-create]
+```
+
+#### Headers and Input Parameters:
+```text
+Headers:
+-----------
+Authorization: (Required) -- A GitHub Personal Access token belonging to a maintainer of 
+the team parameter
+-----------
+
+Parameters:
+-----------
+team: (Required) -- The canonical team slug of a GitHub Team that the Authenticated user 
+is a maintainer of
+-----------
+```
+
+#### Status Codes:
+```shell
+200 -- Success
+401 -- GitHub Personal Access token is missing or invalid
+403 -- GitHub Team does not exist
+409 -- GitHub Actions runner group already exists
+```
+
+#### Example:
+```shell
+curl -H "Authorization: token gh_test-token" https:<host>/v1/api/group-create?team=test-team
+```
+
+#### Example Response:
+```shell
+{"Response":"Runner group created successfully: test-team","StatusCode":200}
 ### `[GET /v1/api/group-list]`
 
 ---
 
+
+### Create a new Organization Runner Group
+
+Creates a new GitHub Actions Organization Runner Group with a slug matching the team slug submitted in the `team` parameter
+
+```
+GET /v1/api/group-create]
+```
+
+#### Headers and Input Parameters:
+```text
+Headers:
+-----------
+Authorization: (Required) -- A GitHub Personal Access token belonging to a maintainer of 
+the team parameter
+-----------
+
+Parameters:
+-----------
+team: (Required) -- The canonical team slug of a GitHub Team that the Authenticated user 
+is a maintainer of
+-----------
+```
+
+#### Status Codes:
+```shell
+200 -- Success
+401 -- GitHub Personal Access token is missing or invalid
+403 -- GitHub Team does not exist
+409 -- GitHub Actions runner group already exists
+```
+
+#### Example:
+```shell
+curl -H "Authorization: token gh_test-token" https:<host>/v1/api/group-create?team=test-team
+```
+
+#### Example Response:
+```shell
+{"Response":"Runner group created successfully: test-team","StatusCode":200}
 ### `[GET /v1/api/repos-add]`
 
 ---
 
+
+### Create a new Organization Runner Group
+
+Creates a new GitHub Actions Organization Runner Group with a slug matching the team slug submitted in the `team` parameter
+
+```
+GET /v1/api/group-create]
+```
+
+#### Headers and Input Parameters:
+```text
+Headers:
+-----------
+Authorization: (Required) -- A GitHub Personal Access token belonging to a maintainer of 
+the team parameter
+-----------
+
+Parameters:
+-----------
+team: (Required) -- The canonical team slug of a GitHub Team that the Authenticated user 
+is a maintainer of
+-----------
+```
+
+#### Status Codes:
+```shell
+200 -- Success
+401 -- GitHub Personal Access token is missing or invalid
+403 -- GitHub Team does not exist
+409 -- GitHub Actions runner group already exists
+```
+
+#### Example:
+```shell
+curl -H "Authorization: token gh_test-token" https:<host>/v1/api/group-create?team=test-team
+```
+
+#### Example Response:
+```shell
+{"Response":"Runner group created successfully: test-team","StatusCode":200}
 ### `[GET /v1/api/repos-remove]`
 
 ---
 
+
+### Create a new Organization Runner Group
+
+Creates a new GitHub Actions Organization Runner Group with a slug matching the team slug submitted in the `team` parameter
+
+```
+GET /v1/api/group-create]
+```
+
+#### Headers and Input Parameters:
+```text
+Headers:
+-----------
+Authorization: (Required) -- A GitHub Personal Access token belonging to a maintainer of 
+the team parameter
+-----------
+
+Parameters:
+-----------
+team: (Required) -- The canonical team slug of a GitHub Team that the Authenticated user 
+is a maintainer of
+-----------
+```
+
+#### Status Codes:
+```shell
+200 -- Success
+401 -- GitHub Personal Access token is missing or invalid
+403 -- GitHub Team does not exist
+409 -- GitHub Actions runner group already exists
+```
+
+#### Example:
+```shell
+curl -H "Authorization: token gh_test-token" https:<host>/v1/api/group-create?team=test-team
+```
+
+#### Example Response:
+```shell
+{"Response":"Runner group created successfully: test-team","StatusCode":200}
 ### `[GET /v1/api/repos-set]`
 
 ---
 
+
+### Create a new Organization Runner Group
+
+Creates a new GitHub Actions Organization Runner Group with a slug matching the team slug submitted in the `team` parameter
+
+```
+GET /v1/api/group-create]
+```
+
+#### Headers and Input Parameters:
+```text
+Headers:
+-----------
+Authorization: (Required) -- A GitHub Personal Access token belonging to a maintainer of 
+the team parameter
+-----------
+
+Parameters:
+-----------
+team: (Required) -- The canonical team slug of a GitHub Team that the Authenticated user 
+is a maintainer of
+-----------
+```
+
+#### Status Codes:
+```shell
+200 -- Success
+401 -- GitHub Personal Access token is missing or invalid
+403 -- GitHub Team does not exist
+409 -- GitHub Actions runner group already exists
+```
+
+#### Example:
+```shell
+curl -H "Authorization: token gh_test-token" https:<host>/v1/api/group-create?team=test-team
+```
+
+#### Example Response:
+```shell
+{"Response":"Runner group created successfully: test-team","StatusCode":200}
 ### `[GET /v1/api/token-register]`
 
 ---
 
-###`[GET /v1/api/token-remove]`
+
+### Create a new Organization Runner Group
+
+Creates a new GitHub Actions Organization Runner Group with a slug matching the team slug submitted in the `team` parameter
+
+```
+### `[GET /v1/api/token-remove]`
+```
+
+#### Headers and Input Parameters:
+```text
+Headers:
+-----------
+Authorization: (Required) -- A GitHub Personal Access token belonging to a maintainer of 
+the team parameter
+-----------
+
+Parameters:
+-----------
+team: (Required) -- The canonical team slug of a GitHub Team that the Authenticated user 
+is a maintainer of
+-----------
+```
+
+#### Status Codes:
+```shell
+200 -- Success
+401 -- GitHub Personal Access token is missing or invalid
+403 -- GitHub Team does not exist
+409 -- GitHub Actions runner group already exists
+```
+
+#### Example:
+```shell
+curl -H "Authorization: token gh_test-token" https:<host>/v1/api/group-create?team=test-team
+```
+
+#### Example Response:
+```shell
+{"Response":"Runner group created successfully: test-team","StatusCode":200}
+```
 

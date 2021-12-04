@@ -2,10 +2,10 @@ package apis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v41/github"
 	"github.com/sirupsen/logrus"
 )
@@ -72,6 +72,8 @@ type Manager struct {
 	RepositoriesClient repositoriesClient
 	TeamsClient        teamsClient
 
+	Router *gin.Engine
+
 	Config *Config
 	Logger *logrus.Logger
 
@@ -81,11 +83,6 @@ type Manager struct {
 type MaintainershipClient struct {
 	TeamsClient teamsClient
 	UsersClient usersClient
-}
-
-type response struct {
-	Response   interface{}
-	StatusCode int
 }
 
 func (m *Manager) verifyMaintainership(token, team, uuid string) (bool, error) {
@@ -117,7 +114,7 @@ func (m *Manager) verifyMaintainership(token, team, uuid string) (bool, error) {
 	return membership.GetRole() == "maintainer", nil
 }
 
-func (m *Manager) retrieveGroupID(name, uuid string) (*int64, error) {
+func (m *Manager) retrieveGroupID(name, uuid string) (*int64, int, error) {
 	ctx := context.Background()
 	m.Logger.WithField("uuid", uuid)
 	var groups []*github.RunnerGroup
@@ -125,7 +122,7 @@ func (m *Manager) retrieveGroupID(name, uuid string) (*int64, error) {
 	for {
 		runnerGroups, resp, err := m.ActionsClient.ListOrganizationRunnerGroups(ctx, m.Config.Org, opts)
 		if err != nil {
-			return nil, fmt.Errorf("failed querying organization runner groups: %w", err)
+			return nil, resp.StatusCode, fmt.Errorf("failed querying organization runner groups: %w", err)
 		}
 		groups = append(groups, runnerGroups.RunnerGroups...)
 		if resp.NextPage == 0 {
@@ -138,32 +135,10 @@ func (m *Manager) retrieveGroupID(name, uuid string) (*int64, error) {
 	m.Logger.WithField("uuid", uuid)
 	for _, group := range groups {
 		if group.GetName() == name {
-			return group.ID, nil
+			return group.ID, http.StatusOK, nil
 		}
 	}
 	m.Logger.WithField("uuid", uuid)
 
-	return nil, fmt.Errorf("unable to locate runner group with name %s", name)
-}
-
-func (m *Manager) writeResponse(w http.ResponseWriter, status int, message string) {
-	m.Logger.Error(message)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err := json.NewEncoder(w).Encode(&response{
-		StatusCode: status,
-		Response:   message,
-	})
-	if err != nil {
-		m.Logger.Errorf("Failed encoding response: %v", err)
-	}
-}
-
-func (m *Manager) writeResponseWithUUID(w http.ResponseWriter, response *response, uuid string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		m.Logger.WithField("uuid", uuid).Errorf("Failed encoding response: %v", err)
-	}
+	return nil, http.StatusNotFound, fmt.Errorf("unable to locate runner group with name %s", name)
 }

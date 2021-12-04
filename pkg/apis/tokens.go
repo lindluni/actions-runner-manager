@@ -5,103 +5,128 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/uuid"
+	"github.com/gin-contrib/requestid"
+	"github.com/gin-gonic/gin"
 )
 
-func (m *Manager) DoTokenRegister(w http.ResponseWriter, req *http.Request) {
-	id := uuid.New().String()
-	m.Logger.WithField("uuid", id).Info("Retrieving team parameter")
-	teamParam := req.URL.Query()["team"]
-	if len(teamParam) != 1 {
-		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: team")
+func (m *Manager) DoTokenRegister(c *gin.Context) {
+	uuid := requestid.Get(c)
+
+	m.Logger.Info("Retrieving team parameter")
+	team := c.Query("team")
+	if team == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Code":  http.StatusBadRequest,
+			"error": "Missing required parameter: team",
+		})
 		return
 	}
-	team := teamParam[0]
-	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Retrieved team parameter")
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Retrieved team parameter")
 
-	m.Logger.WithField("uuid", id).WithField("team", team).Info("Retrieving Authorization header")
-	token := req.Header.Get("Authorization")
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving Authorization header")
+	token := c.GetHeader("Authorization")
 	if token == "" {
-		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: token")
+		c.JSON(http.StatusForbidden, gin.H{
+			"Code":  http.StatusForbidden,
+			"error": "Missing Authorization header",
+		})
 		return
 	}
-	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Retrieved Authorization header")
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Retrieved Authorization header")
 
-	m.Logger.WithField("uuid", id).WithField("team", team).Info("Verifying maintainership")
-	isMaintainer, err := m.verifyMaintainership(token, team, id)
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Verifying maintainership")
+	isMaintainer, err := m.verifyMaintainership(token, team, uuid)
 	if err != nil {
-		message := fmt.Sprintf("Unable to validate user is a team maintainer: %v", err)
-		m.writeResponse(w, http.StatusForbidden, message)
+		c.JSON(http.StatusForbidden, gin.H{
+			"Code":  http.StatusForbidden,
+			"error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+		})
 		return
 	}
 	if !isMaintainer {
-		m.writeResponse(w, http.StatusUnauthorized, "User is not a maintainer of the team")
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"Code":  http.StatusUnauthorized,
+			"error": "User is not a maintainer of the team",
+		})
 		return
 	}
-	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Verified maintainership")
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Verified maintainership")
 
 	ctx := context.Background()
-	m.Logger.WithField("uuid", id).WithField("team", team).Info("Creating organization runner registration token")
-	registrationToken, _, err := m.ActionsClient.CreateOrganizationRegistrationToken(ctx, m.Config.Org)
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Creating organization runner registration token")
+	registrationToken, resp, err := m.ActionsClient.CreateOrganizationRegistrationToken(ctx, m.Config.Org)
 	if err != nil {
-		message := fmt.Sprintf("Unable to create registration token: %v", err)
-		m.writeResponse(w, http.StatusInternalServerError, message)
+		c.JSON(resp.StatusCode, gin.H{
+			"Code":  resp.StatusCode,
+			"error": fmt.Sprintf("Unable to create registration token: %v", err),
+		})
 		return
 	}
-	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Created organization runner registration token")
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Created organization runner registration token")
 
-	response := &response{
-		StatusCode: http.StatusOK,
-		Response:   registrationToken,
-	}
-	m.writeResponseWithUUID(w, response, id)
+	c.JSON(http.StatusOK, gin.H{
+		"Code":     http.StatusOK,
+		"Response": registrationToken,
+	})
 }
 
-func (m *Manager) DoTokenRemove(w http.ResponseWriter, req *http.Request) {
-	id := uuid.New().String()
-	m.Logger.WithField("uuid", id).Info("Retrieving team parameter")
-	teamParam := req.URL.Query()["team"]
-	if len(teamParam) != 1 {
-		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: team")
+func (m *Manager) DoTokenRemove(c *gin.Context) {
+	uuid := requestid.Get(c)
+
+	m.Logger.Info("Retrieving team parameter")
+	team := c.Query("team")
+	if team == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Code":  http.StatusBadRequest,
+			"error": "Missing required parameter: team",
+		})
 		return
 	}
-	team := teamParam[0]
-	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Retrieved team parameter")
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Retrieved team parameter")
 
-	m.Logger.WithField("uuid", id).WithField("team", team).Info("Retrieving Authorization header")
-	token := req.Header.Get("Authorization")
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving Authorization header")
+	token := c.GetHeader("Authorization")
 	if token == "" {
-		m.writeResponse(w, http.StatusBadRequest, "Missing required parameter: token")
+		c.JSON(http.StatusForbidden, gin.H{
+			"Code":  http.StatusForbidden,
+			"error": "Missing Authorization header",
+		})
 		return
 	}
-	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Retrieved Authorization header")
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Retrieved Authorization header")
 
-	m.Logger.WithField("uuid", id).WithField("team", team).Info("Verifying maintainership")
-	isMaintainer, err := m.verifyMaintainership(token, team, id)
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Verifying maintainership")
+	isMaintainer, err := m.verifyMaintainership(token, team, uuid)
 	if err != nil {
-		message := fmt.Sprintf("Unable to validate user is a team maintainer: %v", err)
-		m.writeResponse(w, http.StatusForbidden, message)
+		c.JSON(http.StatusForbidden, gin.H{
+			"Code":  http.StatusForbidden,
+			"error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+		})
 		return
 	}
 	if !isMaintainer {
-		m.writeResponse(w, http.StatusUnauthorized, "User is not a maintainer of the team")
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"Code":  http.StatusUnauthorized,
+			"error": "User is not a maintainer of the team",
+		})
 		return
 	}
-	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Verified maintainership")
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Verified maintainership")
 
 	ctx := context.Background()
-	m.Logger.WithField("uuid", id).WithField("team", team).Info("Creating organization runner removal token")
-	removalToken, _, err := m.ActionsClient.CreateOrganizationRemoveToken(ctx, m.Config.Org)
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Creating organization runner removal token")
+	removalToken, resp, err := m.ActionsClient.CreateOrganizationRemoveToken(ctx, m.Config.Org)
 	if err != nil {
-		message := fmt.Sprintf("Unable to create removal token: %v", err)
-		m.writeResponse(w, http.StatusInternalServerError, message)
+		c.JSON(resp.StatusCode, gin.H{
+			"Code":  resp.StatusCode,
+			"error": fmt.Sprintf("Unable to create organization removal token: %v", err),
+		})
 		return
 	}
-	m.Logger.WithField("uuid", id).WithField("team", team).Debug("Create organization runner removal token")
+	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Created organization runner removal token")
 
-	response := &response{
-		StatusCode: http.StatusOK,
-		Response:   removalToken,
-	}
-	m.writeResponseWithUUID(w, response, id)
+	c.JSON(http.StatusOK, gin.H{
+		"Code":  http.StatusOK,
+		"error": removalToken,
+	})
 }
