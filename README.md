@@ -12,11 +12,15 @@ Actions Runner Manager implements the following API's:
 
 ---
 
-### `GET /v1/api/group-create]`
+### Create a new Organization Runner Group
 
-- Creates a new GitHub Actions Organization Runner Group with a slug matching the team slug submitted in the `team` parameter
+Creates a new GitHub Actions Organization Runner Group with a slug matching the team slug submitted in the `team` parameter
 
-Headers and Input Parameters:
+```
+GET /v1/api/group-create]
+```
+
+#### Headers and Input Parameters:
 ```text
 Headers:
 -----------
@@ -29,7 +33,7 @@ team: (Required) -- The canonical team slug of a GitHub Team that the Authentica
 -----------
 ```
 
-Status Codes:
+#### Status Codes:
 ```shell
 200 -- Success
 401 -- GitHub Personal Access token is missing or invalid
@@ -37,12 +41,12 @@ Status Codes:
 409 -- GitHub Actions runner group already exists
 ```
 
-Example:
+#### Example:
 ```shell
 curl -H "Authorization: token gh_test-token" https:<host>/group-create?team=test-team
 ```
 
-Example Response:
+#### Example Response:
 ```shell
 {"Response":"Runner group created successfully: test-team","StatusCode":200}
 ```
