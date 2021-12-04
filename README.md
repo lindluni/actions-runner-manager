@@ -12,9 +12,7 @@ Actions Runner Manager implements the following API's:
 
 ---
 
-```shell
-[GET /v1/api/group-create]
-```
+### `GET /v1/api/group-create]`
 
 - Creates a new GitHub Actions Organization Runner Group with a slug matching the team slug submitted in the `team` parameter
 
