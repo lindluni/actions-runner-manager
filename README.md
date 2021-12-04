@@ -43,7 +43,7 @@ team: (Required) -- The canonical team slug of a GitHub Team that the Authentica
 
 #### Example:
 ```shell
-curl -H "Authorization: token gh_test-token" https:<host>/group-create?team=test-team
+curl -H "Authorization: token gh_test-token" https:<host>/v1/api/group-create?team=test-team
 ```
 
 #### Example Response:
