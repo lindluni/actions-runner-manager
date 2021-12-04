@@ -24,12 +24,14 @@ GET /v1/api/group-create]
 ```text
 Headers:
 -----------
-Authorization: (Required) -- A GitHub Personal Access token belonging to a maintainer of the team parameter
+Authorization: (Required) -- A GitHub Personal Access token belonging to a maintainer of 
+the team parameter
 -----------
 
 Parameters:
 -----------
-team: (Required) -- The canonical team slug of a GitHub Team that the Authenticated user is a maintainer of
+team: (Required) -- The canonical team slug of a GitHub Team that the Authenticated user 
+is a maintainer of
 -----------
 ```
 
