@@ -1,7 +1,10 @@
 package apis
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/sirupsen/logrus/hooks/test"
@@ -13,6 +16,7 @@ import (
 
 func TestRetrieveGroupID_Success(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		input    *github.RunnerGroups
 		expected *int64
@@ -33,7 +37,8 @@ func TestRetrieveGroupID_Success(t *testing.T) {
 	logger, _ := test.NewNullLogger()
 	for _, tc := range tests {
 		client := &mocks.ActionsClient{}
-		client.ListOrganizationRunnerGroupsReturns(tc.input, &github.Response{NextPage: 0}, nil)
+		client.ListOrganizationRunnerGroupsReturnsOnCall(0, tc.input, &github.Response{NextPage: 1}, nil)
+		client.ListOrganizationRunnerGroupsReturnsOnCall(1, tc.input, &github.Response{NextPage: 0}, nil)
 		manager := &Manager{
 			ActionsClient: client,
 			Config:        &Config{},
@@ -42,12 +47,13 @@ func TestRetrieveGroupID_Success(t *testing.T) {
 		id, err := manager.retrieveGroupID("fake-runner-group-name", "fake-uuid")
 		require.NoError(t, err)
 		require.Equal(t, tc.expected, id)
-		require.Equal(t, client.ListOrganizationRunnerGroupsCallCount(), 1)
+		require.Equal(t, client.ListOrganizationRunnerGroupsCallCount(), 2)
 	}
 }
 
 func TestRetrieveGroupID_Failure(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		err       error
 		errString string
@@ -96,4 +102,77 @@ func TestRetrieveGroupID_Failure(t *testing.T) {
 		require.Nil(t, tc.expected, id)
 		require.Equal(t, client.ListOrganizationRunnerGroupsCallCount(), 1)
 	}
+}
+
+func TestWriteResponse_Success(t *testing.T) {
+	t.Parallel()
+
+	logger, _ := test.NewNullLogger()
+	writer := httptest.NewRecorder()
+	manager := &Manager{
+		Logger: logger,
+	}
+	manager.writeResponse(writer, -1, "fake-response-message")
+
+	result := writer.Result()
+	body, err := ioutil.ReadAll(result.Body)
+	defer result.Body.Close()
+	require.NoError(t, err)
+
+	expected := &response{
+		StatusCode: -1,
+		Response:   "fake-response-message",
+	}
+
+	response := &response{}
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err)
+	require.Equal(t, expected, response)
+}
+
+func TestWriteResponse_Failure(t *testing.T) {
+	t.Parallel()
+
+	logger, _ := test.NewNullLogger()
+	writer := httptest.NewRecorder()
+	manager := &Manager{
+		Logger: logger,
+	}
+	manager.writeResponse(writer, -1, "fake-message")
+
+	result := writer.Result()
+	body, err := ioutil.ReadAll(result.Body)
+	defer result.Body.Close()
+	require.NoError(t, err)
+
+	expected := &response{
+		StatusCode: -1,
+		Response:   "fake-message",
+	}
+
+	response := &response{}
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err)
+	require.Equal(t, expected, response)
+}
+
+func TestVerifyMaintainership_Success(t *testing.T) {
+	actionsClient := &mocks.ActionsClient{}
+	teamsClient := &mocks.TeamsClient{}
+	usersClient := &mocks.UsersClient{}
+	logger, _ := test.NewNullLogger()
+	manager := &Manager{
+		ActionsClient: actionsClient,
+		Config:        &Config{},
+		CreateMaintainershipClient: func(string, string) (*MaintainershipClient, error) {
+			return &MaintainershipClient{
+				TeamsClient: teamsClient,
+				UsersClient: usersClient,
+			}, nil
+		},
+		Logger: logger,
+	}
+	isMaintainer, err := manager.verifyMaintainership("", "", "")
+	require.NoError(t, err)
+	require.False(t, isMaintainer)
 }

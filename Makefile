@@ -26,7 +26,7 @@ mocks: tools
 
 .PHONY: profile
 profile:
-	go test -coverprofile=c.out ./...
+	go test -coverprofile=c.out -run TestVerifyMaintainership ./...
 	go tool cover -html=c.out
 
 .PHONY: tests
