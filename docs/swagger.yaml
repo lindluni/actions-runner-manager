@@ -33,7 +33,7 @@ info:
   version: 0.1.0
 paths:
   /groups-create/{team}:
-    get:
+    put:
       description: Creates a new GitHub Action organization runner group named with
         the team slug
       parameters:

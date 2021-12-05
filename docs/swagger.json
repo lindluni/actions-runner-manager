@@ -17,7 +17,7 @@
     "basePath": "/api/v1",
     "paths": {
         "/groups-create/{team}": {
-            "get": {
+            "put": {
                 "security": [
                     {
                         "ApiKeyAuth": []

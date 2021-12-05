@@ -32,7 +32,7 @@ var doc = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/groups-create/{team}": {
-            "get": {
+            "put": {
                 "security": [
                     {
                         "ApiKeyAuth": []

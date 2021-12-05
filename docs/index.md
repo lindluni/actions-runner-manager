@@ -36,7 +36,7 @@ GitHub Professional Services lindluni@github.com https://github.com/lindluni/act
 
 | Method  | URI     | Name   | Summary |
 |---------|---------|--------|---------|
-| GET | /api/v1/groups-create/{team} | [get groups create team](#get-groups-create-team) | Create a new GitHub Action organization Runner Group |
+| PUT | /api/v1/groups-create/{team} | [put groups create team](#put-groups-create-team) | Create a new GitHub Action organization Runner Group |
   
 
 
@@ -50,64 +50,6 @@ GitHub Professional Services lindluni@github.com https://github.com/lindluni/act
 
 
 ## Paths
-
-### <span id="get-groups-create-team"></span> Create a new GitHub Action organization Runner Group (*GetGroupsCreateTeam*)
-
-```
-GET /api/v1/groups-create/{team}
-```
-
-Creates a new GitHub Action organization runner group named with the team slug
-
-#### Produces
-  * application/json
-
-#### Security Requirements
-  * ApiKeyAuth
-
-#### Parameters
-
-| Name | Source | Type | Go type | Separator | Required | Default | Description |
-|------|--------|------|---------|-----------| :------: |---------|-------------|
-| team | `path` | string | `string` |  | ✓ |  | Canonical **slug** of the GitHub team |
-
-#### All responses
-| Code | Status | Description | Has headers | Schema |
-|------|--------|-------------|:-----------:|--------|
-| [200](#get-groups-create-team-200) | OK | Success message |  | [schema](#get-groups-create-team-200-schema) |
-
-#### Responses
-
-
-##### <span id="get-groups-create-team-200"></span> 200 - Success message
-Status: OK
-
-###### <span id="get-groups-create-team-200-schema"></span> Schema
-   
-  
-
-[GetGroupsCreateTeamOKBody](#get-groups-create-team-o-k-body)
-
-###### Inlined models
-
-**<span id="get-groups-create-team-o-k-body"></span> GetGroupsCreateTeamOKBody**
-
-
-  
-
-
-* composed type [ApisJSONResult](#apis-json-result)
-* inlined member (*getGroupsCreateTeamOKBodyAO1*)
-
-
-
-**Properties**
-
-| Name | Type | Go type | Required | Default | Description | Example |
-|------|------|---------|:--------:| ------- |-------------|---------|
-| Response | string| `string` |  | |  |  |
-
-
 
 ### <span id="get-token-register-team"></span> Create a new GitHub Action organization runner registration token (*GetTokenRegisterTeam*)
 
@@ -182,6 +124,64 @@ Status: OK
   
 
 [GithubRegistrationToken](#github-registration-token)
+
+### <span id="put-groups-create-team"></span> Create a new GitHub Action organization Runner Group (*PutGroupsCreateTeam*)
+
+```
+PUT /api/v1/groups-create/{team}
+```
+
+Creates a new GitHub Action organization runner group named with the team slug
+
+#### Produces
+  * application/json
+
+#### Security Requirements
+  * ApiKeyAuth
+
+#### Parameters
+
+| Name | Source | Type | Go type | Separator | Required | Default | Description |
+|------|--------|------|---------|-----------| :------: |---------|-------------|
+| team | `path` | string | `string` |  | ✓ |  | Canonical **slug** of the GitHub team |
+
+#### All responses
+| Code | Status | Description | Has headers | Schema |
+|------|--------|-------------|:-----------:|--------|
+| [200](#put-groups-create-team-200) | OK | Success message |  | [schema](#put-groups-create-team-200-schema) |
+
+#### Responses
+
+
+##### <span id="put-groups-create-team-200"></span> 200 - Success message
+Status: OK
+
+###### <span id="put-groups-create-team-200-schema"></span> Schema
+   
+  
+
+[PutGroupsCreateTeamOKBody](#put-groups-create-team-o-k-body)
+
+###### Inlined models
+
+**<span id="put-groups-create-team-o-k-body"></span> PutGroupsCreateTeamOKBody**
+
+
+  
+
+
+* composed type [ApisJSONResult](#apis-json-result)
+* inlined member (*putGroupsCreateTeamOKBodyAO1*)
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| Response | string| `string` |  | |  |  |
+
+
 
 ## Models
 
