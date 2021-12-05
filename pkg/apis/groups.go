@@ -28,7 +28,7 @@ type JSONResult struct {
 // @Produce      json
 // @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
 // @Success      200    {object}  JSONResult{Response=string} "Success message"
-// @Router       /groups-create/{team} [put]
+// @Router       /groups-create/{team} [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupCreate(c *gin.Context) {
 	uuid := requestid.Get(c)
