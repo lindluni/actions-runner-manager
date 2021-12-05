@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
-	_ "github.com/google/go-github/v41/github"
 )
 
 // DoTokenRegister Request a GitHub Action organization runner registration token
