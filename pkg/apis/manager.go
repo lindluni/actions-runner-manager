@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/didip/tollbooth/v6"
+	"github.com/didip/tollbooth/v6/limiter"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v41/github"
 	"github.com/sirupsen/logrus"
@@ -73,6 +76,7 @@ type Manager struct {
 	TeamsClient        teamsClient
 
 	Router *gin.Engine
+	Limit  *limiter.Limiter
 
 	Config *Config
 	Logger *logrus.Logger
@@ -83,6 +87,49 @@ type Manager struct {
 type MaintainershipClient struct {
 	TeamsClient teamsClient
 	UsersClient usersClient
+}
+
+func (m *Manager) Serve() {
+	m.Logger.Info("Initializing API endpoints")
+	v1 := m.Router.Group("/v1/api")
+	{
+		v1.GET("/group-create", LimitHandler(m.Limit), m.DoGroupCreate)
+		v1.GET("/group-delete", LimitHandler(m.Limit), m.DoGroupDelete)
+		v1.GET("/group-list", LimitHandler(m.Limit), m.DoGroupList)
+		v1.GET("/repos-add", LimitHandler(m.Limit), m.DoReposAdd)
+		v1.GET("/repos-remove", LimitHandler(m.Limit), m.DoReposRemove)
+		v1.GET("/repos-set", LimitHandler(m.Limit), m.DoReposSet)
+		v1.GET("/token-register", LimitHandler(m.Limit), m.DoTokenRegister)
+		v1.GET("/token-remove", LimitHandler(m.Limit), m.DoTokenRemove)
+	}
+	m.Logger.Debug("Initialized API endpoints")
+
+	m.Logger.Debug("Compiling HTTP server address")
+	address := fmt.Sprintf("%s:%d", m.Config.Server.Address, m.Config.Server.Port)
+	m.Logger.Infof("Starting API server on address: %s", address)
+	if m.Config.Server.TLS.Enabled {
+		err := m.Router.RunTLS(address, m.Config.Server.TLS.CertFile, m.Config.Server.TLS.KeyFile)
+		if err != nil {
+			m.Logger.Fatalf("API server failed: %v", err)
+		}
+	} else {
+		err := m.Router.Run(address)
+		if err != nil {
+			m.Logger.Fatalf("API server failed: %v", err)
+		}
+	}
+}
+
+func LimitHandler(lmt *limiter.Limiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		httpError := tollbooth.LimitByRequest(lmt, c.Writer, c.Request)
+		if httpError != nil {
+			c.Data(httpError.StatusCode, lmt.GetMessageContentType(), []byte(httpError.Message))
+			c.Abort()
+		} else {
+			c.Next()
+		}
+	}
 }
 
 func (m *Manager) verifyMaintainership(token, team, uuid string) (bool, error) {

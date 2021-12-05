@@ -18,13 +18,14 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gin-contrib/requestid"
+	"github.com/google/uuid"
+
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/didip/tollbooth/v6"
 	"github.com/didip/tollbooth/v6/limiter"
-	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v41/github"
-	"github.com/google/uuid"
 	"github.com/lindluni/actions-runner-manager/pkg/apis"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/writer"
@@ -107,46 +108,7 @@ func main() {
 	}
 	logger.Debug("Created API manager")
 
-	logger.Info("Initializing API endpoints")
-	v1 := router.Group("/v1/api")
-	{
-		v1.GET("/group-create", LimitHandler(lmt), manager.DoGroupCreate)
-		v1.GET("/group-delete", LimitHandler(lmt), manager.DoGroupDelete)
-		v1.GET("/group-list", LimitHandler(lmt), manager.DoGroupList)
-		v1.GET("/repos-add", LimitHandler(lmt), manager.DoReposAdd)
-		v1.GET("/repos-remove", LimitHandler(lmt), manager.DoReposRemove)
-		v1.GET("/repos-set", LimitHandler(lmt), manager.DoReposSet)
-		v1.GET("/token-register", LimitHandler(lmt), manager.DoTokenRegister)
-		v1.GET("/token-remove", LimitHandler(lmt), manager.DoTokenRemove)
-	}
-	logger.Debug("Initialized API endpoints")
-
-	logger.Debug("Compiling HTTP server address")
-	address := fmt.Sprintf("%s:%d", config.Server.Address, config.Server.Port)
-	logger.Infof("Starting API server on address: %s", address)
-	if config.Server.TLS.Enabled {
-		err = router.RunTLS(address, config.Server.TLS.CertFile, config.Server.TLS.KeyFile)
-		if err != nil {
-			logger.Fatalf("API server failed: %v", err)
-		}
-	} else {
-		err = router.Run(address)
-		if err != nil {
-			logger.Fatalf("API server failed: %v", err)
-		}
-	}
-}
-
-func LimitHandler(lmt *limiter.Limiter) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		httpError := tollbooth.LimitByRequest(lmt, c.Writer, c.Request)
-		if httpError != nil {
-			c.Data(httpError.StatusCode, lmt.GetMessageContentType(), []byte(httpError.Message))
-			c.Abort()
-		} else {
-			c.Next()
-		}
-	}
+	manager.Serve()
 }
 
 func initConfig() (*apis.Config, []byte) {
