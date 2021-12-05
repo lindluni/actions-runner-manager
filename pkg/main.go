@@ -3,6 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 */
 
 // TODO: Ensure all http error response paths return at the end
+// TODO: Move secrets to environment to protect them and add approvers for PR's
 
 package main
 
@@ -13,19 +14,20 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
-
-	"github.com/gin-contrib/requestid"
-	"github.com/google/uuid"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/didip/tollbooth/v6"
 	"github.com/didip/tollbooth/v6/limiter"
+	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v41/github"
+	"github.com/google/uuid"
 	"github.com/lindluni/actions-runner-manager/pkg/apis"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/writer"
@@ -98,10 +100,15 @@ func main() {
 
 	logger.Debug("Creating API manager")
 	manager := &apis.Manager{
-		ActionsClient:              client.Actions,
-		RepositoriesClient:         client.Repositories,
-		TeamsClient:                client.Teams,
-		Router:                     router,
+		ActionsClient:      client.Actions,
+		RepositoriesClient: client.Repositories,
+		TeamsClient:        client.Teams,
+		Router:             router,
+		Limit:              lmt,
+		Server: &http.Server{
+			Addr:    net.JoinHostPort(config.Server.Address, strconv.Itoa(config.Server.Port)),
+			Handler: router,
+		},
 		Config:                     config,
 		Logger:                     logger,
 		CreateMaintainershipClient: createClient,

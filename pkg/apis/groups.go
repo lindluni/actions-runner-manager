@@ -281,8 +281,8 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	}
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug(c, "Generated Response")
 
-	c.JSON(http.StatusForbidden, gin.H{
-		"Code":     http.StatusForbidden,
+	c.JSON(http.StatusOK, gin.H{
+		"Code":     http.StatusOK,
 		"Response": listResponse,
 	})
 }

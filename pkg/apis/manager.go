@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/didip/tollbooth/v6"
 	"github.com/didip/tollbooth/v6/limiter"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v41/github"
 	"github.com/sirupsen/logrus"
@@ -46,37 +48,42 @@ type repositoriesClient interface {
 }
 
 type Config struct {
-	Org            string `yaml:"org"`
-	AppID          int64  `yaml:"appID"`
-	InstallationID int64  `yaml:"installationID"`
-	PrivateKey     string `yaml:"privateKey"`
-	Logging        struct {
-		Compression  bool   `yaml:"compression"`
-		Ephemeral    bool   `yaml:"ephemeral"`
-		Level        string `yaml:"level"`
-		LogDirectory string `yaml:"logDirectory"`
-		MaxAge       int    `yaml:"maxAge"`
-		MaxBackups   int    `yaml:"maxBackups"`
-		MaxSize      int    `yaml:"maxSize"`
-	} `yaml:"logging"`
-	Server struct {
-		Address string `yaml:"address"`
-		Port    int    `yaml:"port"`
-		TLS     struct {
-			Enabled  bool   `yaml:"enabled"`
-			CertFile string `yaml:"certFile"`
-			KeyFile  string `yaml:"keyFile"`
-		} `yaml:"tls"`
-	} `yaml:"server"`
+	Org            string  `yaml:"org"`
+	AppID          int64   `yaml:"appID"`
+	InstallationID int64   `yaml:"installationID"`
+	PrivateKey     string  `yaml:"privateKey"`
+	Logging        Logging `yaml:"logging"`
+	Server         Server  `yaml:"server"`
 }
 
+type Logging struct {
+	Compression  bool   `yaml:"compression"`
+	Ephemeral    bool   `yaml:"ephemeral"`
+	Level        string `yaml:"level"`
+	LogDirectory string `yaml:"logDirectory"`
+	MaxAge       int    `yaml:"maxAge"`
+	MaxBackups   int    `yaml:"maxBackups"`
+	MaxSize      int    `yaml:"maxSize"`
+}
+
+type Server struct {
+	Address string `yaml:"address"`
+	Port    int    `yaml:"port"`
+	TLS     TLS    `yaml:"tls"`
+}
+type TLS struct {
+	Enabled  bool   `yaml:"enabled"`
+	CertFile string `yaml:"certFile"`
+	KeyFile  string `yaml:"keyFile"`
+}
 type Manager struct {
 	ActionsClient      actionsClient
 	RepositoriesClient repositoriesClient
 	TeamsClient        teamsClient
 
-	Router *gin.Engine
 	Limit  *limiter.Limiter
+	Router *gin.Engine
+	Server *http.Server
 
 	Config *Config
 	Logger *logrus.Logger
@@ -91,6 +98,39 @@ type MaintainershipClient struct {
 
 func (m *Manager) Serve() {
 	m.Logger.Info("Initializing API endpoints")
+	m.SetRoutes()
+
+	m.Logger.Info("Configuring OS signal handling")
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	go func() {
+		<-sigc
+		err := m.Server.Shutdown(context.Background())
+		m.Logger.Errorf("Failed to shutdown server: %v", err)
+	}()
+	m.Logger.Debug("Configured OS signal handling")
+
+	m.Logger.Debug("Compiling HTTP server address")
+	address := fmt.Sprintf("%s:%d", m.Config.Server.Address, m.Config.Server.Port)
+	m.Logger.Infof("Starting API server on address: %s", address)
+	if m.Config.Server.TLS.Enabled {
+		err := m.Server.ListenAndServeTLS(m.Config.Server.TLS.CertFile, m.Config.Server.TLS.KeyFile)
+		if err != nil {
+			m.Logger.Fatalf("API server failed: %v", err)
+		}
+	} else {
+		err := m.Server.ListenAndServe()
+		if err != nil {
+			m.Logger.Fatalf("API server failed: %v", err)
+		}
+	}
+}
+
+func (m *Manager) SetRoutes() {
 	v1 := m.Router.Group("/v1/api")
 	{
 		v1.GET("/group-create", LimitHandler(m.Limit), m.DoGroupCreate)
@@ -103,21 +143,6 @@ func (m *Manager) Serve() {
 		v1.GET("/token-remove", LimitHandler(m.Limit), m.DoTokenRemove)
 	}
 	m.Logger.Debug("Initialized API endpoints")
-
-	m.Logger.Debug("Compiling HTTP server address")
-	address := fmt.Sprintf("%s:%d", m.Config.Server.Address, m.Config.Server.Port)
-	m.Logger.Infof("Starting API server on address: %s", address)
-	if m.Config.Server.TLS.Enabled {
-		err := m.Router.RunTLS(address, m.Config.Server.TLS.CertFile, m.Config.Server.TLS.KeyFile)
-		if err != nil {
-			m.Logger.Fatalf("API server failed: %v", err)
-		}
-	} else {
-		err := m.Router.Run(address)
-		if err != nil {
-			m.Logger.Fatalf("API server failed: %v", err)
-		}
-	}
 }
 
 func LimitHandler(lmt *limiter.Limiter) gin.HandlerFunc {

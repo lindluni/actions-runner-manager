@@ -30,7 +30,7 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	if repos == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Unable to validate user is a team maintainer",
+			"error": "Missing required parameter: repos",
 		})
 		return
 	}
@@ -129,8 +129,8 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Added repositories to runner group")
 
 	c.JSON(http.StatusOK, gin.H{
-		"Code":  http.StatusOK,
-		"error": "Successfully added repositories to runner group",
+		"Code":     http.StatusOK,
+		"Response": "Successfully added repositories to runner group",
 	})
 }
 
@@ -258,11 +258,11 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Retrieved team parameter")
 
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving assignedRepos parameter")
-	repos := c.Query("assignedRepos")
+	repos := c.Query("repos")
 	if repos == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: assignedRepos",
+			"error": "Missing required parameter: repos",
 		})
 		return
 	}
@@ -359,8 +359,8 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	}
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Added repositories to runner group")
 
-	c.JSON(http.StatusForbidden, gin.H{
-		"Code":     http.StatusForbidden,
+	c.JSON(http.StatusOK, gin.H{
+		"Code":     http.StatusOK,
 		"Response": "Successfully added repositories to runner group",
 	})
 }

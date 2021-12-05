@@ -126,7 +126,7 @@ func (m *Manager) DoTokenRemove(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Created organization runner removal token")
 
 	c.JSON(http.StatusOK, gin.H{
-		"Code":  http.StatusOK,
-		"error": removalToken,
+		"Code":     http.StatusOK,
+		"Response": removalToken,
 	})
 }
