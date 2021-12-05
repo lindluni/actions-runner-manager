@@ -30,7 +30,7 @@ OUTPUT="$(filterExcludedAndGeneratedFiles "$OUTPUT")"
 if [ -n "$OUTPUT" ]; then
     echo "The following files contain gofumpt errors"
     echo "$OUTPUT"
-    echo "The gofumpt command 'gofumpt -l -s -w' must be run for these files"
+    echo "The gofumpt command 'gofumpt -l -w' must be run for these files"
     exit 1
 fi
 

@@ -71,11 +71,13 @@ type Server struct {
 	Port    int    `yaml:"port"`
 	TLS     TLS    `yaml:"tls"`
 }
+
 type TLS struct {
 	Enabled  bool   `yaml:"enabled"`
 	CertFile string `yaml:"certFile"`
 	KeyFile  string `yaml:"keyFile"`
 }
+
 type Manager struct {
 	ActionsClient      actionsClient
 	RepositoriesClient repositoriesClient
