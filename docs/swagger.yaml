@@ -8,6 +8,17 @@ definitions:
         type: string
       Response: {}
     type: object
+  apis.listResponse:
+    properties:
+      repos:
+        items:
+          type: string
+        type: array
+      runners:
+        items:
+          type: string
+        type: array
+    type: object
   github.RegistrationToken:
     properties:
       expires_at:
@@ -33,7 +44,7 @@ info:
   version: 0.1.0
 paths:
   /groups-create/{team}:
-    put:
+    get:
       description: Creates a new GitHub Action organization runner group named with
         the team slug
       parameters:
@@ -46,11 +57,13 @@ paths:
       - application/json
       responses:
         "200":
-          description: Success message
+          description: OK
           schema:
             allOf:
             - $ref: '#/definitions/apis.JSONResult'
             - properties:
+                Code:
+                  type: integer
                 Response:
                   type: string
               type: object
@@ -58,7 +71,73 @@ paths:
       - ApiKeyAuth: []
       summary: Create a new GitHub Action organization Runner Group
       tags:
-      - groups
+      - Groups
+  /groups-delete/{team}:
+    get:
+      description: Deletes an existing GitHub Action organization runner group named
+        with the team slug
+      parameters:
+      - description: Canonical **slug** of the GitHub team
+        in: path
+        name: team
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/apis.JSONResult'
+            - properties:
+                Code:
+                  type: integer
+                Response:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Deletes an existing GitHub Action organization Runner Group
+      tags:
+      - Groups
+  /groups-list/{team}:{repos}:
+    get:
+      description: List all repositories and runners assigned to a GitHub Action organization
+        runner group named with the team slug
+      parameters:
+      - description: Canonical **slug** of the GitHub team
+        in: path
+        name: team
+        required: true
+        type: string
+      - description: Comma-seperated list of repository slugs
+        in: path
+        items:
+          type: string
+        name: repos
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/apis.JSONResult'
+            - properties:
+                Code:
+                  type: integer
+                Response:
+                  $ref: '#/definitions/apis.listResponse'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: List all resources associated with a GitHub Action organization Runner
+        Group
+      tags:
+      - Groups
   /token-register/{team}:
     get:
       description: Creates a new GitHub Action organization runner removal token that
@@ -75,12 +154,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github.RegistrationToken'
+            allOf:
+            - $ref: '#/definitions/apis.JSONResult'
+            - properties:
+                Code:
+                  type: integer
+                Response:
+                  $ref: '#/definitions/github.RegistrationToken'
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Create a new GitHub Action organization runner registration token
       tags:
-      - tokens
+      - Tokens
   /token-remove/{team}:
     get:
       description: Creates a new GitHub Action organization runner removal token that
@@ -97,12 +183,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github.RegistrationToken'
+            allOf:
+            - $ref: '#/definitions/apis.JSONResult'
+            - properties:
+                Code:
+                  type: integer
+                Response:
+                  $ref: '#/definitions/github.RegistrationToken'
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Create a new GitHub Action organization runner removal token
       tags:
-      - tokens
+      - Tokens
 securityDefinitions:
   APIKeyAuth:
     in: header

@@ -24,10 +24,10 @@ type JSONResult struct {
 // DoGroupCreate Create a new GitHub Action organization Runner Group
 // @Summary      Create a new GitHub Action organization Runner Group
 // @Description  Creates a new GitHub Action organization runner group named with the team slug
-// @Tags         groups
+// @Tags         Groups
 // @Produce      json
 // @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
-// @Success      200    {object}  JSONResult{Response=string} "Success message"
+// @Success      200    {object}  JSONResult{Code=int,Response=string}
 // @Router       /groups-create/{team} [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupCreate(c *gin.Context) {
@@ -102,6 +102,15 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 	})
 }
 
+// DoGroupDelete Deletes an existing GitHub Action organization Runner Group
+// @Summary      Deletes an existing GitHub Action organization Runner Group
+// @Description  Deletes an existing GitHub Action organization runner group named with the team slug
+// @Tags         Groups
+// @Produce      json
+// @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
+// @Success      200    {object}  JSONResult{Code=int,Response=string}
+// @Router       /groups-delete/{team} [get]
+// @Security     ApiKeyAuth
 func (m *Manager) DoGroupDelete(c *gin.Context) {
 	uuid := requestid.Get(c)
 
@@ -174,6 +183,16 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	})
 }
 
+// DoGroupList   List all resources associated with a GitHub Action organization Runner Group
+// @Summary      List all resources associated with a GitHub Action organization Runner Group
+// @Description  List all repositories and runners assigned to a GitHub Action organization runner group named with the team slug
+// @Tags         Groups
+// @Produce      json
+// @Param        team    path      string    true  "Canonical **slug** of the GitHub team"
+// @Param        repos   path      []string  true  "Comma-seperated list of repository slugs"
+// @Success      200    {object}  JSONResult{Code=int,Response=listResponse}
+// @Router       /groups-list/{team}:{repos} [get]
+// @Security     ApiKeyAuth
 func (m *Manager) DoGroupList(c *gin.Context) {
 	uuid := requestid.Get(c)
 

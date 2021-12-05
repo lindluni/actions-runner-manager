@@ -32,7 +32,7 @@ var doc = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/groups-create/{team}": {
-            "put": {
+            "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -43,7 +43,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "groups"
+                    "Groups"
                 ],
                 "summary": "Create a new GitHub Action organization Runner Group",
                 "parameters": [
@@ -57,7 +57,7 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success message",
+                        "description": "OK",
                         "schema": {
                             "allOf": [
                                 {
@@ -66,8 +66,119 @@ var doc = `{
                                 {
                                     "type": "object",
                                     "properties": {
+                                        "Code": {
+                                            "type": "integer"
+                                        },
                                         "Response": {
                                             "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/groups-delete/{team}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes an existing GitHub Action organization runner group named with the team slug",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "Deletes an existing GitHub Action organization Runner Group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Canonical **slug** of the GitHub team",
+                        "name": "team",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/apis.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "Code": {
+                                            "type": "integer"
+                                        },
+                                        "Response": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/groups-list/{team}:{repos}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "List all repositories and runners assigned to a GitHub Action organization runner group named with the team slug",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "List all resources associated with a GitHub Action organization Runner Group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Canonical **slug** of the GitHub team",
+                        "name": "team",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Comma-seperated list of repository slugs",
+                        "name": "repos",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/apis.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "Code": {
+                                            "type": "integer"
+                                        },
+                                        "Response": {
+                                            "$ref": "#/definitions/apis.listResponse"
                                         }
                                     }
                                 }
@@ -89,7 +200,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tokens"
+                    "Tokens"
                 ],
                 "summary": "Create a new GitHub Action organization runner registration token",
                 "parameters": [
@@ -105,7 +216,22 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github.RegistrationToken"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/apis.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "Code": {
+                                            "type": "integer"
+                                        },
+                                        "Response": {
+                                            "$ref": "#/definitions/github.RegistrationToken"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -123,7 +249,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tokens"
+                    "Tokens"
                 ],
                 "summary": "Create a new GitHub Action organization runner removal token",
                 "parameters": [
@@ -139,7 +265,22 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github.RegistrationToken"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/apis.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "Code": {
+                                            "type": "integer"
+                                        },
+                                        "Response": {
+                                            "$ref": "#/definitions/github.RegistrationToken"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -157,6 +298,23 @@ var doc = `{
                     "type": "string"
                 },
                 "Response": {}
+            }
+        },
+        "apis.listResponse": {
+            "type": "object",
+            "properties": {
+                "repos": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "runners": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
             }
         },
         "github.RegistrationToken": {
