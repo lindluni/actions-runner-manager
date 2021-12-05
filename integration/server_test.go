@@ -190,7 +190,7 @@ func TestE2E(t *testing.T) {
 
 	expected = &Response{
 		Code:     http.StatusOK,
-		Response: fmt.Sprintf("Successfully added repositories to runner group"),
+		Response: "Successfully added repositories to runner group",
 	}
 	url = fmt.Sprintf("http://%s/v1/api/repos-add?team=%s&repos=%s", manager.Server.Addr, slug, slug)
 	response = doGet(t, url)
@@ -209,7 +209,7 @@ func TestE2E(t *testing.T) {
 
 	expected = &Response{
 		Code:     http.StatusOK,
-		Response: fmt.Sprintf("Successfully removed repositories from runner group"),
+		Response: "Successfully removed repositories from runner group",
 	}
 	url = fmt.Sprintf("http://%s/v1/api/repos-remove?team=%s&repos=%s", manager.Server.Addr, slug, slug)
 	response = doGet(t, url)
@@ -217,7 +217,7 @@ func TestE2E(t *testing.T) {
 
 	expected = &Response{
 		Code:     http.StatusOK,
-		Response: fmt.Sprintf("Successfully added repositories to runner group"),
+		Response: "Successfully added repositories to runner group",
 	}
 	url = fmt.Sprintf("http://%s/v1/api/repos-set?team=%s&repos=%s", manager.Server.Addr, slug, slug)
 	response = doGet(t, url)
