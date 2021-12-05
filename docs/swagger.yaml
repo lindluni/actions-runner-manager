@@ -1,0 +1,74 @@
+basePath: /api/v1
+definitions:
+  github.RegistrationToken:
+    properties:
+      expires_at:
+        $ref: '#/definitions/github.Timestamp'
+      token:
+        type: string
+    type: object
+  github.Timestamp:
+    properties:
+      time.Time:
+        type: string
+    type: object
+info:
+  contact:
+    email: lindluni@github.com
+    name: GitHub Professional Services
+    url: https://github.com/lindluni/actions-runner-manager
+  description: API for managing GitHub organization Runner Groups
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Action Runner Manager API
+  version: 0.1.0
+paths:
+  /token-register/{team}:
+    get:
+      description: Create a new GitHub Action organization runner registration token
+      parameters:
+      - description: Canonical **slug** of the GitHub team
+        in: path
+        name: team
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github.RegistrationToken'
+      security:
+      - ApiKeyAuth: []
+      summary: Creates a new GitHub Action organization runner registration token
+      tags:
+      - tokens
+  /token-remove/{team}:
+    get:
+      description: Create a new GitHub Action organization runner removal token
+      parameters:
+      - description: Canonical **slug** of the GitHub team
+        in: path
+        name: team
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github.RegistrationToken'
+      security:
+      - ApiKeyAuth: []
+      summary: Creates a new GitHub Action organization runner removal token
+      tags:
+      - tokens
+securityDefinitions:
+  APIKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

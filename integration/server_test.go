@@ -184,7 +184,7 @@ func TestE2E(t *testing.T) {
 		Code:     http.StatusOK,
 		Response: fmt.Sprintf("Runner group created successfully: %s", slug),
 	}
-	url := fmt.Sprintf("http://%s/v1/api/group-create?team=%s", manager.Server.Addr, slug)
+	url := fmt.Sprintf("http://%s/api/v1/group-create?team=%s", manager.Server.Addr, slug)
 	response := doGet(t, url)
 	require.Equal(t, expected, response)
 
@@ -192,7 +192,7 @@ func TestE2E(t *testing.T) {
 		Code:     http.StatusOK,
 		Response: "Successfully added repositories to runner group",
 	}
-	url = fmt.Sprintf("http://%s/v1/api/repos-add?team=%s&repos=%s", manager.Server.Addr, slug, slug)
+	url = fmt.Sprintf("http://%s/api/v1/repos-add?team=%s&repos=%s", manager.Server.Addr, slug, slug)
 	response = doGet(t, url)
 	require.Equal(t, expected, response)
 
@@ -203,7 +203,7 @@ func TestE2E(t *testing.T) {
 			"runners": []interface{}{},
 		},
 	}
-	url = fmt.Sprintf("http://%s/v1/api/group-list?team=%s", manager.Server.Addr, slug)
+	url = fmt.Sprintf("http://%s/api/v1/group-list?team=%s", manager.Server.Addr, slug)
 	response = doGet(t, url)
 	require.Equal(t, expected, response)
 
@@ -211,7 +211,7 @@ func TestE2E(t *testing.T) {
 		Code:     http.StatusOK,
 		Response: "Successfully removed repositories from runner group",
 	}
-	url = fmt.Sprintf("http://%s/v1/api/repos-remove?team=%s&repos=%s", manager.Server.Addr, slug, slug)
+	url = fmt.Sprintf("http://%s/api/v1/repos-remove?team=%s&repos=%s", manager.Server.Addr, slug, slug)
 	response = doGet(t, url)
 	require.Equal(t, expected, response)
 
@@ -219,7 +219,7 @@ func TestE2E(t *testing.T) {
 		Code:     http.StatusOK,
 		Response: "Successfully added repositories to runner group",
 	}
-	url = fmt.Sprintf("http://%s/v1/api/repos-set?team=%s&repos=%s", manager.Server.Addr, slug, slug)
+	url = fmt.Sprintf("http://%s/api/v1/repos-set?team=%s&repos=%s", manager.Server.Addr, slug, slug)
 	response = doGet(t, url)
 	require.Equal(t, expected, response)
 
@@ -227,18 +227,18 @@ func TestE2E(t *testing.T) {
 		Code:     http.StatusOK,
 		Response: fmt.Sprintf("Runner group deleted successfully: %s", slug),
 	}
-	url = fmt.Sprintf("http://%s/v1/api/group-delete?team=%s", manager.Server.Addr, slug)
+	url = fmt.Sprintf("http://%s/api/v1/group-delete?team=%s", manager.Server.Addr, slug)
 	response = doGet(t, url)
 	require.Equal(t, expected, response)
 
-	url = fmt.Sprintf("http://%s/v1/api/token-register?team=%s", manager.Server.Addr, slug)
+	url = fmt.Sprintf("http://%s/api/v1/token-register?team=%s", manager.Server.Addr, slug)
 	response = doGet(t, url)
 	require.Equal(t, http.StatusOK, response.Code)
 	tokenMap := response.Response.(map[string]interface{})
 	require.NotEmpty(t, tokenMap["token"])
 	require.NotEmpty(t, tokenMap["expires_at"])
 
-	url = fmt.Sprintf("http://%s/v1/api/token-remove?team=%s", manager.Server.Addr, slug)
+	url = fmt.Sprintf("http://%s/api/v1/token-remove?team=%s", manager.Server.Addr, slug)
 	response = doGet(t, url)
 	require.Equal(t, http.StatusOK, response.Code)
 	tokenMap = response.Response.(map[string]interface{})

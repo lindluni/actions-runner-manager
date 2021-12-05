@@ -7,8 +7,18 @@ import (
 
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
+	_ "github.com/google/go-github/v41/github"
 )
 
+// DoTokenRegister Request a GitHub Action organization runner registration token
+// @Summary      Creates a new GitHub Action organization runner registration token
+// @Description  Create a new GitHub Action organization runner registration token
+// @Tags         tokens
+// @Produce      json
+// @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
+// @Success      200    {object}  github.RegistrationToken
+// @Router       /token-register/{team} [get]
+// @Security     ApiKeyAuth
 func (m *Manager) DoTokenRegister(c *gin.Context) {
 	uuid := requestid.Get(c)
 
@@ -70,6 +80,15 @@ func (m *Manager) DoTokenRegister(c *gin.Context) {
 	})
 }
 
+// DoTokenRemove Request a GitHub Action organization runner removal token
+// @Summary      Creates a new GitHub Action organization runner removal token
+// @Description  Create a new GitHub Action organization runner removal token
+// @Tags         tokens
+// @Produce      json
+// @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
+// @Success      200    {object}  github.RegistrationToken
+// @Router       /token-remove/{team} [get]
+// @Security     ApiKeyAuth
 func (m *Manager) DoTokenRemove(c *gin.Context) {
 	uuid := requestid.Get(c)
 

@@ -1,0 +1,116 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API for managing GitHub organization Runner Groups",
+        "title": "Action Runner Manager API",
+        "contact": {
+            "name": "GitHub Professional Services",
+            "url": "https://github.com/lindluni/actions-runner-manager",
+            "email": "lindluni@github.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "0.1.0"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/token-register/{team}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create a new GitHub Action organization runner registration token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tokens"
+                ],
+                "summary": "Creates a new GitHub Action organization runner registration token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Canonical **slug** of the GitHub team",
+                        "name": "team",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github.RegistrationToken"
+                        }
+                    }
+                }
+            }
+        },
+        "/token-remove/{team}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create a new GitHub Action organization runner removal token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tokens"
+                ],
+                "summary": "Creates a new GitHub Action organization runner removal token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Canonical **slug** of the GitHub team",
+                        "name": "team",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github.RegistrationToken"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github.RegistrationToken": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "$ref": "#/definitions/github.Timestamp"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "github.Timestamp": {
+            "type": "object",
+            "properties": {
+                "time.Time": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "APIKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

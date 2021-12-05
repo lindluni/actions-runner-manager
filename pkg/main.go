@@ -40,6 +40,22 @@ func init() {
 	gin.SetMode(gin.ReleaseMode)
 }
 
+// @title        Action Runner Manager API
+// @version      0.1.0
+// @description  API for managing GitHub organization Runner Groups
+
+// @contact.name   GitHub Professional Services
+// @contact.url    https://github.com/lindluni/actions-runner-manager
+// @contact.email  lindluni@github.com
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @BasePath  /api/v1
+
+// @securityDefinitions.apikey APIKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	config, privateKey := initConfig()
 	logger := initLogger(config)

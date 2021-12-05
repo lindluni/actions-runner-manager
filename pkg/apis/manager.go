@@ -133,7 +133,7 @@ func (m *Manager) Serve() {
 }
 
 func (m *Manager) SetRoutes() {
-	v1 := m.Router.Group("/v1/api")
+	v1 := m.Router.Group("/api/v1")
 	{
 		v1.GET("/group-create", LimitHandler(m.Limit), m.DoGroupCreate)
 		v1.GET("/group-delete", LimitHandler(m.Limit), m.DoGroupDelete)

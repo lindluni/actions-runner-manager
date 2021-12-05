@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-GOTOOLS = counterfeiter gofumpt goimports golint staticcheck
+GOTOOLS = counterfeiter gofumpt goimports golint staticcheck swagger swag
 BUILD_DIR ?= build
 GOTOOLS_BINDIR ?= $(shell go env GOBIN)
 
@@ -11,6 +11,8 @@ go.fqp.gofumpt       := mvdan.cc/gofumpt
 go.fqp.goimports     := golang.org/x/tools/cmd/goimports
 go.fqp.golint        := golang.org/x/lint/golint
 go.fqp.staticcheck   := honnef.co/go/tools/cmd/staticcheck
+go.fqp.swagger       := github.com/go-swagger/go-swagger/cmd/swagger
+go.fqp.swag   		 := github.com/swaggo/swag/cmd/swag
 
 .PHONY: clean
 clean:
@@ -36,6 +38,11 @@ mocks: tools
 profile:
 	go test -coverprofile=c.out ./pkg/...
 	go tool cover -html=c.out
+
+.PHONY: swagger
+swagger:
+	swag init --parseDependency --parseInternal --parseDepth 1 --dir pkg
+	swagger generate markdown -f docs/swagger.yaml --output docs/index.md
 
 .PHONY: tests
 tests: unit-tests integration-tests
