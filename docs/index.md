@@ -38,7 +38,17 @@ GitHub Professional Services lindluni@github.com https://github.com/lindluni/act
 |---------|---------|--------|---------|
 | GET | /api/v1/groups-create/{team} | [get groups create team](#get-groups-create-team) | Create a new GitHub Action organization Runner Group |
 | GET | /api/v1/groups-delete/{team} | [get groups delete team](#get-groups-delete-team) | Deletes an existing GitHub Action organization Runner Group |
-| GET | /api/v1/groups-list/{team}:{repos} | [get groups list team repos](#get-groups-list-team-repos) | List all resources associated with a GitHub Action organization Runner Group |
+| GET | /api/v1/groups-list/{team} | [get groups list team](#get-groups-list-team) | List all resources associated with a GitHub Action organization Runner Group |
+  
+
+
+###  repos
+
+| Method  | URI     | Name   | Summary |
+|---------|---------|--------|---------|
+| GET | /api/v1/repos-add/{team}:{repos} | [get repos add team repos](#get-repos-add-team-repos) | Add new repositories to an existing GitHub Actions organization runner group |
+| GET | /api/v1/repos-remove/{team}:{repos} | [get repos remove team repos](#get-repos-remove-team-repos) | Remove existing repositories from an existing GitHub Actions organization runner group |
+| GET | /api/v1/repos-set/{team}:{repos} | [get repos set team repos](#get-repos-set-team-repos) | Replaces all existing repositories in an existing GitHub Actions organization runner group with a new set of repositories |
   
 
 
@@ -171,13 +181,72 @@ Status: OK
 
 
 
-### <span id="get-groups-list-team-repos"></span> List all resources associated with a GitHub Action organization Runner Group (*GetGroupsListTeamRepos*)
+### <span id="get-groups-list-team"></span> List all resources associated with a GitHub Action organization Runner Group (*GetGroupsListTeam*)
 
 ```
-GET /api/v1/groups-list/{team}:{repos}
+GET /api/v1/groups-list/{team}
 ```
 
 List all repositories and runners assigned to a GitHub Action organization runner group named with the team slug
+
+#### Produces
+  * application/json
+
+#### Security Requirements
+  * ApiKeyAuth
+
+#### Parameters
+
+| Name | Source | Type | Go type | Separator | Required | Default | Description |
+|------|--------|------|---------|-----------| :------: |---------|-------------|
+| team | `path` | string | `string` |  | ✓ |  | Canonical **slug** of the GitHub team |
+
+#### All responses
+| Code | Status | Description | Has headers | Schema |
+|------|--------|-------------|:-----------:|--------|
+| [200](#get-groups-list-team-200) | OK | OK |  | [schema](#get-groups-list-team-200-schema) |
+
+#### Responses
+
+
+##### <span id="get-groups-list-team-200"></span> 200 - OK
+Status: OK
+
+###### <span id="get-groups-list-team-200-schema"></span> Schema
+   
+  
+
+[GetGroupsListTeamOKBody](#get-groups-list-team-o-k-body)
+
+###### Inlined models
+
+**<span id="get-groups-list-team-o-k-body"></span> GetGroupsListTeamOKBody**
+
+
+  
+
+
+* composed type [ApisJSONResult](#apis-json-result)
+* inlined member (*getGroupsListTeamOKBodyAO1*)
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| Code | integer| `int64` |  | |  |  |
+| Response | [ApisListResponse](#apis-list-response)| `models.ApisListResponse` |  | |  |  |
+
+
+
+### <span id="get-repos-add-team-repos"></span> Add new repositories to an existing GitHub Actions organization runner group (*GetReposAddTeamRepos*)
+
+```
+GET /api/v1/repos-add/{team}:{repos}
+```
+
+Adds new repositories to an existing GitHub Actions organization named with the team slug
 
 #### Produces
   * application/json
@@ -195,30 +264,30 @@ List all repositories and runners assigned to a GitHub Action organization runne
 #### All responses
 | Code | Status | Description | Has headers | Schema |
 |------|--------|-------------|:-----------:|--------|
-| [200](#get-groups-list-team-repos-200) | OK | OK |  | [schema](#get-groups-list-team-repos-200-schema) |
+| [200](#get-repos-add-team-repos-200) | OK | OK |  | [schema](#get-repos-add-team-repos-200-schema) |
 
 #### Responses
 
 
-##### <span id="get-groups-list-team-repos-200"></span> 200 - OK
+##### <span id="get-repos-add-team-repos-200"></span> 200 - OK
 Status: OK
 
-###### <span id="get-groups-list-team-repos-200-schema"></span> Schema
+###### <span id="get-repos-add-team-repos-200-schema"></span> Schema
    
   
 
-[GetGroupsListTeamReposOKBody](#get-groups-list-team-repos-o-k-body)
+[GetReposAddTeamReposOKBody](#get-repos-add-team-repos-o-k-body)
 
 ###### Inlined models
 
-**<span id="get-groups-list-team-repos-o-k-body"></span> GetGroupsListTeamReposOKBody**
+**<span id="get-repos-add-team-repos-o-k-body"></span> GetReposAddTeamReposOKBody**
 
 
   
 
 
 * composed type [ApisJSONResult](#apis-json-result)
-* inlined member (*getGroupsListTeamReposOKBodyAO1*)
+* inlined member (*getReposAddTeamReposOKBodyAO1*)
 
 
 
@@ -227,7 +296,127 @@ Status: OK
 | Name | Type | Go type | Required | Default | Description | Example |
 |------|------|---------|:--------:| ------- |-------------|---------|
 | Code | integer| `int64` |  | |  |  |
-| Response | [ApisListResponse](#apis-list-response)| `models.ApisListResponse` |  | |  |  |
+| Response | string| `string` |  | |  |  |
+
+
+
+### <span id="get-repos-remove-team-repos"></span> Remove existing repositories from an existing GitHub Actions organization runner group (*GetReposRemoveTeamRepos*)
+
+```
+GET /api/v1/repos-remove/{team}:{repos}
+```
+
+Removes existing repositories to an existing GitHub Actions organization named with the team slug
+
+#### Produces
+  * application/json
+
+#### Security Requirements
+  * ApiKeyAuth
+
+#### Parameters
+
+| Name | Source | Type | Go type | Separator | Required | Default | Description |
+|------|--------|------|---------|-----------| :------: |---------|-------------|
+| repos | `path` | []string | `[]string` |  | ✓ |  | Comma-seperated list of repository slugs |
+| team | `path` | string | `string` |  | ✓ |  | Canonical **slug** of the GitHub team |
+
+#### All responses
+| Code | Status | Description | Has headers | Schema |
+|------|--------|-------------|:-----------:|--------|
+| [200](#get-repos-remove-team-repos-200) | OK | OK |  | [schema](#get-repos-remove-team-repos-200-schema) |
+
+#### Responses
+
+
+##### <span id="get-repos-remove-team-repos-200"></span> 200 - OK
+Status: OK
+
+###### <span id="get-repos-remove-team-repos-200-schema"></span> Schema
+   
+  
+
+[GetReposRemoveTeamReposOKBody](#get-repos-remove-team-repos-o-k-body)
+
+###### Inlined models
+
+**<span id="get-repos-remove-team-repos-o-k-body"></span> GetReposRemoveTeamReposOKBody**
+
+
+  
+
+
+* composed type [ApisJSONResult](#apis-json-result)
+* inlined member (*getReposRemoveTeamReposOKBodyAO1*)
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| Code | integer| `int64` |  | |  |  |
+| Response | string| `string` |  | |  |  |
+
+
+
+### <span id="get-repos-set-team-repos"></span> Replaces all existing repositories in an existing GitHub Actions organization runner group with a new set of repositories (*GetReposSetTeamRepos*)
+
+```
+GET /api/v1/repos-set/{team}:{repos}
+```
+
+Replaces all existing repositories in an existing GitHub Actions organization named with the team slug with a new set of repositories
+
+#### Produces
+  * application/json
+
+#### Security Requirements
+  * ApiKeyAuth
+
+#### Parameters
+
+| Name | Source | Type | Go type | Separator | Required | Default | Description |
+|------|--------|------|---------|-----------| :------: |---------|-------------|
+| repos | `path` | []string | `[]string` |  | ✓ |  | Comma-seperated list of repository slugs |
+| team | `path` | string | `string` |  | ✓ |  | Canonical **slug** of the GitHub team |
+
+#### All responses
+| Code | Status | Description | Has headers | Schema |
+|------|--------|-------------|:-----------:|--------|
+| [200](#get-repos-set-team-repos-200) | OK | OK |  | [schema](#get-repos-set-team-repos-200-schema) |
+
+#### Responses
+
+
+##### <span id="get-repos-set-team-repos-200"></span> 200 - OK
+Status: OK
+
+###### <span id="get-repos-set-team-repos-200-schema"></span> Schema
+   
+  
+
+[GetReposSetTeamReposOKBody](#get-repos-set-team-repos-o-k-body)
+
+###### Inlined models
+
+**<span id="get-repos-set-team-repos-o-k-body"></span> GetReposSetTeamReposOKBody**
+
+
+  
+
+
+* composed type [ApisJSONResult](#apis-json-result)
+* inlined member (*getReposSetTeamReposOKBodyAO1*)
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| Code | integer| `int64` |  | |  |  |
+| Response | string| `string` |  | |  |  |
 
 
 

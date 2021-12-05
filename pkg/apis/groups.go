@@ -189,9 +189,8 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 // @Tags         Groups
 // @Produce      json
 // @Param        team    path      string    true  "Canonical **slug** of the GitHub team"
-// @Param        repos   path      []string  true  "Comma-seperated list of repository slugs"
 // @Success      200    {object}  JSONResult{Code=int,Response=listResponse}
-// @Router       /groups-list/{team}:{repos} [get]
+// @Router       /groups-list/{team} [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupList(c *gin.Context) {
 	uuid := requestid.Get(c)

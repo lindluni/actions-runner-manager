@@ -101,10 +101,40 @@ paths:
       summary: Deletes an existing GitHub Action organization Runner Group
       tags:
       - Groups
-  /groups-list/{team}:{repos}:
+  /groups-list/{team}:
     get:
       description: List all repositories and runners assigned to a GitHub Action organization
         runner group named with the team slug
+      parameters:
+      - description: Canonical **slug** of the GitHub team
+        in: path
+        name: team
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/apis.JSONResult'
+            - properties:
+                Code:
+                  type: integer
+                Response:
+                  $ref: '#/definitions/apis.listResponse'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: List all resources associated with a GitHub Action organization Runner
+        Group
+      tags:
+      - Groups
+  /repos-add/{team}:{repos}:
+    get:
+      description: Adds new repositories to an existing GitHub Actions organization
+        named with the team slug
       parameters:
       - description: Canonical **slug** of the GitHub team
         in: path
@@ -130,14 +160,88 @@ paths:
                 Code:
                   type: integer
                 Response:
-                  $ref: '#/definitions/apis.listResponse'
+                  type: string
               type: object
       security:
       - ApiKeyAuth: []
-      summary: List all resources associated with a GitHub Action organization Runner
-        Group
+      summary: Add new repositories to an existing GitHub Actions organization runner
+        group
       tags:
-      - Groups
+      - Repos
+  /repos-remove/{team}:{repos}:
+    get:
+      description: Removes existing repositories to an existing GitHub Actions organization
+        named with the team slug
+      parameters:
+      - description: Canonical **slug** of the GitHub team
+        in: path
+        name: team
+        required: true
+        type: string
+      - description: Comma-seperated list of repository slugs
+        in: path
+        items:
+          type: string
+        name: repos
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/apis.JSONResult'
+            - properties:
+                Code:
+                  type: integer
+                Response:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Remove existing repositories from an existing GitHub Actions organization
+        runner group
+      tags:
+      - Repos
+  /repos-set/{team}:{repos}:
+    get:
+      description: Replaces all existing repositories in an existing GitHub Actions
+        organization named with the team slug with a new set of repositories
+      parameters:
+      - description: Canonical **slug** of the GitHub team
+        in: path
+        name: team
+        required: true
+        type: string
+      - description: Comma-seperated list of repository slugs
+        in: path
+        items:
+          type: string
+        name: repos
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/apis.JSONResult'
+            - properties:
+                Code:
+                  type: integer
+                Response:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Replaces all existing repositories in an existing GitHub Actions organization
+        runner group with a new set of repositories
+      tags:
+      - Repos
   /token-register/{team}:
     get:
       description: Creates a new GitHub Action organization runner removal token that

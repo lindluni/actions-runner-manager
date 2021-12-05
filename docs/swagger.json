@@ -114,7 +114,7 @@
                 }
             }
         },
-        "/groups-list/{team}:{repos}": {
+        "/groups-list/{team}": {
             "get": {
                 "security": [
                     {
@@ -129,6 +129,55 @@
                     "Groups"
                 ],
                 "summary": "List all resources associated with a GitHub Action organization Runner Group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Canonical **slug** of the GitHub team",
+                        "name": "team",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/apis.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "Code": {
+                                            "type": "integer"
+                                        },
+                                        "Response": {
+                                            "$ref": "#/definitions/apis.listResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/repos-add/{team}:{repos}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Adds new repositories to an existing GitHub Actions organization named with the team slug",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Repos"
+                ],
+                "summary": "Add new repositories to an existing GitHub Actions organization runner group",
                 "parameters": [
                     {
                         "type": "string",
@@ -163,7 +212,125 @@
                                             "type": "integer"
                                         },
                                         "Response": {
-                                            "$ref": "#/definitions/apis.listResponse"
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/repos-remove/{team}:{repos}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Removes existing repositories to an existing GitHub Actions organization named with the team slug",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Repos"
+                ],
+                "summary": "Remove existing repositories from an existing GitHub Actions organization runner group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Canonical **slug** of the GitHub team",
+                        "name": "team",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Comma-seperated list of repository slugs",
+                        "name": "repos",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/apis.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "Code": {
+                                            "type": "integer"
+                                        },
+                                        "Response": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/repos-set/{team}:{repos}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Replaces all existing repositories in an existing GitHub Actions organization named with the team slug with a new set of repositories",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Repos"
+                ],
+                "summary": "Replaces all existing repositories in an existing GitHub Actions organization runner group with a new set of repositories",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Canonical **slug** of the GitHub team",
+                        "name": "team",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Comma-seperated list of repository slugs",
+                        "name": "repos",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/apis.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "Code": {
+                                            "type": "integer"
+                                        },
+                                        "Response": {
+                                            "type": "string"
                                         }
                                     }
                                 }

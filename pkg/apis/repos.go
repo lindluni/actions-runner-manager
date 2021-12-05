@@ -11,6 +11,16 @@ import (
 	"github.com/google/go-github/v41/github"
 )
 
+// DoReposAdd    Add new repositories to an existing GitHub Actions organization runner group
+// @Summary      Add new repositories to an existing GitHub Actions organization runner group
+// @Description  Adds new repositories to an existing GitHub Actions organization named with the team slug
+// @Tags         Repos
+// @Produce      json
+// @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
+// @Param        repos  path      []string  true  "Comma-seperated list of repository slugs"
+// @Success      200    {object}  JSONResult{Code=int,Response=string}
+// @Router       /repos-add/{team}:{repos} [get]
+// @Security     ApiKeyAuth
 func (m *Manager) DoReposAdd(c *gin.Context) {
 	uuid := requestid.Get(c)
 
@@ -134,6 +144,16 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	})
 }
 
+// DoReposRemove    Remove existing repositories from an existing GitHub Actions organization runner group
+// @Summary         Remove existing repositories from an existing GitHub Actions organization runner group
+// @Description     Removes existing repositories to an existing GitHub Actions organization named with the team slug
+// @Tags            Repos
+// @Produce         json
+// @Param           team   path      string  true  "Canonical **slug** of the GitHub team"
+// @Param           repos  path      []string  true  "Comma-seperated list of repository slugs"
+// @Success         200    {object}  JSONResult{Code=int,Response=string}
+// @Router          /repos-remove/{team}:{repos} [get]
+// @Security        ApiKeyAuth
 func (m *Manager) DoReposRemove(c *gin.Context) {
 	uuid := requestid.Get(c)
 
@@ -243,6 +263,16 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	})
 }
 
+// DoReposSet       Replaces all existing repositories in an existing GitHub Actions organization runner group with a new set of repositories
+// @Summary         Replaces all existing repositories in an existing GitHub Actions organization runner group with a new set of repositories
+// @Description     Replaces all existing repositories in an existing GitHub Actions organization named with the team slug with a new set of repositories
+// @Tags            Repos
+// @Produce         json
+// @Param           team   path      string  true  "Canonical **slug** of the GitHub team"
+// @Param           repos  path      []string  true  "Comma-seperated list of repository slugs"
+// @Success         200    {object}  JSONResult{Code=int,Response=string}
+// @Router          /repos-set/{team}:{repos} [get]
+// @Security        ApiKeyAuth
 func (m *Manager) DoReposSet(c *gin.Context) {
 	uuid := requestid.Get(c)
 
