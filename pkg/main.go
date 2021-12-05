@@ -73,7 +73,7 @@ func main() {
 		logger.WithField("uuid", uuid).Info("Validating Authorization token")
 		user, _, err := client.Users.Get(context.Background(), "")
 		if err != nil {
-			logger.Errorf("Unable to verify authorization token authenticity: %v", err)
+			logger.WithField("uuid", uuid).Errorf("Unable to verify authorization token authenticity: %v", err)
 			return nil, fmt.Errorf("unable to verify authorization token authenticity: %w", err)
 		}
 		lmt.SetBasicAuthUsers(append(lmt.GetBasicAuthUsers(), user.GetLogin()))
