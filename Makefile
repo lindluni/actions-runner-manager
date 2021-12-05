@@ -34,7 +34,7 @@ profile:
 	go tool cover -html=c.out
 
 .PHONY: tests
-tests: unit-tests
+tests: unit-tests integration-tests
 
 .PHONY: tools
 tools: $(patsubst %,$(GOTOOLS_BINDIR)/%, $(GOTOOLS))

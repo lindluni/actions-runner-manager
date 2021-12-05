@@ -23,7 +23,7 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 	if team == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: team",
+			"Error": "Missing required parameter: team",
 		})
 		return
 	}
@@ -34,7 +34,7 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 	if token == "" {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": "Missing Authorization header",
+			"Error": "Missing Authorization header",
 		})
 		return
 	}
@@ -45,14 +45,14 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"Code":  http.StatusUnauthorized,
-			"error": "User is not a maintainer of the team",
+			"Error": "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -69,13 +69,13 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 		if resp != nil && resp.StatusCode == http.StatusConflict {
 			c.JSON(http.StatusConflict, gin.H{
 				"Code":  http.StatusConflict,
-				"error": fmt.Sprintf("Runner group already exists: %s", team),
+				"Error": fmt.Sprintf("Runner group already exists: %s", team),
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"Code":  http.StatusInternalServerError,
-			"error": fmt.Sprintf("Unable to create runner group: %v", err),
+			"Error": fmt.Sprintf("Unable to create runner group: %v", err),
 		})
 		return
 	}
@@ -95,7 +95,7 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	if team == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: team",
+			"Error": "Missing required parameter: team",
 		})
 		return
 	}
@@ -106,7 +106,7 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	if token == "" {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": "Missing Authorization header",
+			"Error": "Missing Authorization header",
 		})
 		return
 	}
@@ -117,14 +117,14 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"Code":  http.StatusUnauthorized,
-			"error": "User is not a maintainer of the team",
+			"Error": "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -135,7 +135,7 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	if err != nil {
 		c.JSON(statusCode, gin.H{
 			"Code":  statusCode,
-			"error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
+			"Error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
 		})
 		return
 	}
@@ -147,7 +147,7 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	if err != nil {
 		c.JSON(resp.StatusCode, gin.H{
 			"Code":  resp.StatusCode,
-			"error": fmt.Sprintf("Unable to delete runner group: %v", err),
+			"Error": fmt.Sprintf("Unable to delete runner group: %v", err),
 		})
 		return
 	}
@@ -167,7 +167,7 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	if team == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: team",
+			"Error": "Missing required parameter: team",
 		})
 		return
 	}
@@ -178,7 +178,7 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	if token == "" {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": "Missing Authorization header",
+			"Error": "Missing Authorization header",
 		})
 		return
 	}
@@ -189,14 +189,14 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"Code":  http.StatusUnauthorized,
-			"error": "User is not a maintainer of the team",
+			"Error": "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -207,7 +207,7 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	if err != nil {
 		c.JSON(statusCode, gin.H{
 			"Code":  statusCode,
-			"error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
+			"Error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
 		})
 		return
 	}
@@ -222,7 +222,7 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 		if err != nil {
 			c.JSON(resp.StatusCode, gin.H{
 				"Code":  resp.StatusCode,
-				"error": fmt.Sprintf("Unable to list runners: %v", err),
+				"Error": fmt.Sprintf("Unable to list runners: %v", err),
 			})
 			return
 		}
@@ -249,7 +249,7 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"Code":  http.StatusInternalServerError,
-				"error": fmt.Sprintf("Unable to list repositories: %v", err),
+				"Error": fmt.Sprintf("Unable to list repositories: %v", err),
 			})
 			return
 		}

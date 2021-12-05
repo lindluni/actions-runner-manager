@@ -18,16 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type response struct {
-	Response interface{}
-	Code     int
-}
-
-type errorResponse struct {
-	Error interface{}
-	Code  int
-}
-
 func TestDoGroupCreate_Success(t *testing.T) {
 	actionsClient := &mocks.ActionsClient{}
 	teamsClient := &mocks.TeamsClient{}
@@ -68,12 +58,12 @@ func TestDoGroupCreate_Success(t *testing.T) {
 	defer result.Body.Close()
 	require.NoError(t, err)
 
-	expected := &response{
-		Code:     http.StatusOK,
-		Response: "Runner group created successfully: fake-runner-group-name",
+	expected := &gin.H{
+		"Code":     float64(http.StatusOK),
+		"Response": "Runner group created successfully: fake-runner-group-name",
 	}
 
-	groupAddResponse := &response{}
+	groupAddResponse := &gin.H{}
 	err = json.Unmarshal(body, &groupAddResponse)
 	require.NoError(t, err)
 	require.Equal(t, expected, groupAddResponse)

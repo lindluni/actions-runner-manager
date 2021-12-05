@@ -17,7 +17,7 @@ func (m *Manager) DoTokenRegister(c *gin.Context) {
 	if team == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: team",
+			"Error": "Missing required parameter: team",
 		})
 		return
 	}
@@ -28,7 +28,7 @@ func (m *Manager) DoTokenRegister(c *gin.Context) {
 	if token == "" {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": "Missing Authorization header",
+			"Error": "Missing Authorization header",
 		})
 		return
 	}
@@ -39,14 +39,14 @@ func (m *Manager) DoTokenRegister(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"Code":  http.StatusUnauthorized,
-			"error": "User is not a maintainer of the team",
+			"Error": "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -58,7 +58,7 @@ func (m *Manager) DoTokenRegister(c *gin.Context) {
 	if err != nil {
 		c.JSON(resp.StatusCode, gin.H{
 			"Code":  resp.StatusCode,
-			"error": fmt.Sprintf("Unable to create registration token: %v", err),
+			"Error": fmt.Sprintf("Unable to create registration token: %v", err),
 		})
 		return
 	}
@@ -78,7 +78,7 @@ func (m *Manager) DoTokenRemove(c *gin.Context) {
 	if team == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: team",
+			"Error": "Missing required parameter: team",
 		})
 		return
 	}
@@ -89,7 +89,7 @@ func (m *Manager) DoTokenRemove(c *gin.Context) {
 	if token == "" {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": "Missing Authorization header",
+			"Error": "Missing Authorization header",
 		})
 		return
 	}
@@ -100,14 +100,14 @@ func (m *Manager) DoTokenRemove(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"Code":  http.StatusUnauthorized,
-			"error": "User is not a maintainer of the team",
+			"Error": "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -119,7 +119,7 @@ func (m *Manager) DoTokenRemove(c *gin.Context) {
 	if err != nil {
 		c.JSON(resp.StatusCode, gin.H{
 			"Code":  resp.StatusCode,
-			"error": fmt.Sprintf("Unable to create organization removal token: %v", err),
+			"Error": fmt.Sprintf("Unable to create organization removal token: %v", err),
 		})
 		return
 	}

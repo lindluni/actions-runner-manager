@@ -200,7 +200,7 @@ func initLogger(config *apis.Config) *logrus.Logger {
 				logrus.WarnLevel,
 			},
 		})
-		logger.AddHook(&writer.Hook{ // Send info and d	ebug logs to stdout
+		logger.AddHook(&writer.Hook{ // Send info and debug logs to stdout
 			Writer: io.MultiWriter(os.Stdout, rotator),
 			LogLevels: []logrus.Level{
 				logrus.InfoLevel,

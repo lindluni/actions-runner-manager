@@ -19,7 +19,7 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	if team == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: team",
+			"Error": "Missing required parameter: team",
 		})
 		return
 	}
@@ -30,7 +30,7 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	if repos == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: repos",
+			"Error": "Missing required parameter: repos",
 		})
 		return
 	}
@@ -42,7 +42,7 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	if token == "" {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": "Missing Authorization header",
+			"Error": "Missing Authorization header",
 		})
 		return
 	}
@@ -53,14 +53,14 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"Code":  http.StatusUnauthorized,
-			"error": "User is not a maintainer of the team",
+			"Error": "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -71,7 +71,7 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	if err != nil {
 		c.JSON(statusCode, gin.H{
 			"Code":  statusCode,
-			"error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
+			"Error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
 		})
 		return
 	}
@@ -87,7 +87,7 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 		if err != nil {
 			c.JSON(resp.StatusCode, gin.H{
 				"Code":  resp.StatusCode,
-				"error": fmt.Sprintf("Unable to retrieve team repos: %v", err),
+				"Error": fmt.Sprintf("Unable to retrieve team repos: %v", err),
 			})
 			return
 		}
@@ -106,7 +106,7 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
 				"Code":  http.StatusNotFound,
-				"error": fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err),
+				"Error": fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err),
 			})
 			return
 		}
@@ -121,7 +121,7 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 		if err != nil {
 			c.JSON(resp.StatusCode, gin.H{
 				"Code":  resp.StatusCode,
-				"error": fmt.Sprintf("Unable to add repo %s to runner group %s: %v", name, team, err),
+				"Error": fmt.Sprintf("Unable to add repo %s to runner group %s: %v", name, team, err),
 			})
 			return
 		}
@@ -142,7 +142,7 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	if team == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: team",
+			"Error": "Missing required parameter: team",
 		})
 		return
 	}
@@ -153,7 +153,7 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	if repos == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: repos",
+			"Error": "Missing required parameter: repos",
 		})
 		return
 	}
@@ -165,7 +165,7 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	if token == "" {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": "Missing Authorization header",
+			"Error": "Missing Authorization header",
 		})
 		return
 	}
@@ -176,14 +176,14 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"Code":  http.StatusUnauthorized,
-			"error": "User is not a maintainer of the team",
+			"Error": "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -194,7 +194,7 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	if err != nil {
 		c.JSON(statusCode, gin.H{
 			"Code":  statusCode,
-			"error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
+			"Error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
 		})
 		return
 	}
@@ -209,13 +209,13 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 			if resp.StatusCode == http.StatusNotFound {
 				c.JSON(resp.StatusCode, gin.H{
 					"Code":  resp.StatusCode,
-					"error": fmt.Sprintf("Repository %s not found", name),
+					"Error": fmt.Sprintf("Repository %s not found", name),
 				})
 				return
 			}
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"Code":  http.StatusInternalServerError,
-				"error": fmt.Sprintf("Unable to retrieve repository %s: %v", name, err),
+				"Error": fmt.Sprintf("Unable to retrieve repository %s: %v", name, err),
 			})
 			return
 		}
@@ -230,7 +230,7 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 		if err != nil {
 			c.JSON(resp.StatusCode, gin.H{
 				"Code":  resp.StatusCode,
-				"error": fmt.Sprintf("Unable to remove repo %s from runner group %s: %v", name, team, err),
+				"Error": fmt.Sprintf("Unable to remove repo %s from runner group %s: %v", name, team, err),
 			})
 			return
 		}
@@ -251,7 +251,7 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	if team == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: team",
+			"Error": "Missing required parameter: team",
 		})
 		return
 	}
@@ -262,7 +262,7 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	if repos == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code":  http.StatusBadRequest,
-			"error": "Missing required parameter: repos",
+			"Error": "Missing required parameter: repos",
 		})
 		return
 	}
@@ -274,7 +274,7 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	if token == "" {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": "Missing Authorization header",
+			"Error": "Missing Authorization header",
 		})
 		return
 	}
@@ -285,14 +285,14 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"Code":  http.StatusForbidden,
-			"error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"Code":  http.StatusUnauthorized,
-			"error": "User is not a maintainer of the team",
+			"Error": "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -307,7 +307,7 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 		if err != nil {
 			c.JSON(resp.StatusCode, gin.H{
 				"Code":  resp.StatusCode,
-				"error": fmt.Sprintf("Unable to retrieve team assignedRepos: %v", err),
+				"Error": fmt.Sprintf("Unable to retrieve team assignedRepos: %v", err),
 			})
 			return
 		}
@@ -327,7 +327,7 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
 				"Code":  http.StatusNotFound,
-				"error": fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err),
+				"Error": fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err),
 			})
 			return
 		}
@@ -340,7 +340,7 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	if err != nil {
 		c.JSON(statusCode, gin.H{
 			"Code":  statusCode,
-			"error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
+			"Error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
 		})
 		return
 	}
@@ -353,7 +353,7 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	if err != nil {
 		c.JSON(resp.StatusCode, gin.H{
 			"Code":  resp.StatusCode,
-			"error": fmt.Sprintf("Unable to set repositories for runner group %s: %v", team, err),
+			"Error": fmt.Sprintf("Unable to set repositories for runner group %s: %v", team, err),
 		})
 		return
 	}
