@@ -50,7 +50,7 @@ func initializeManager(t *testing.T) (*apis.Manager, []byte) {
 		AppID:          int64(appID),
 		InstallationID: int64(installationID),
 		Server: apis.Server{
-			Address: "127.0.0.1",
+			Address: "localhost",
 			Port:    54321,
 		},
 		Org: os.Getenv("MANAGER_ORG"),
