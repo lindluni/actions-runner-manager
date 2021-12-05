@@ -16,6 +16,10 @@ go.fqp.staticcheck   := honnef.co/go/tools/cmd/staticcheck
 clean:
 	rm -rf c.out
 
+.PHONY: integration-tests
+integration-tests:
+	go test -cover ./integration/...
+
 .PHONY: lint
 lint: tools
 	./scripts/linter.sh
@@ -24,9 +28,9 @@ lint: tools
 mocks: tools
 	go generate ./...
 
-.PHONY: profile
+.PHONY: profile-unit-tests
 profile:
-	go test -coverprofile=c.out -run TestVerifyMaintainership ./...
+	go test -coverprofile=c.out ./pkg/...
 	go tool cover -html=c.out
 
 .PHONY: tests
@@ -37,7 +41,7 @@ tools: $(patsubst %,$(GOTOOLS_BINDIR)/%, $(GOTOOLS))
 
 .PHONY: unit-tests
 unit-tests:
-	go test -cover ./...
+	go test -cover ./pkg/...
 
 gotool.%:
 	$(eval TOOL = ${subst gotool.,,${@}})
