@@ -16,6 +16,10 @@ go.fqp.staticcheck   := honnef.co/go/tools/cmd/staticcheck
 clean:
 	rm -rf c.out
 
+.PHONY: docker
+docker:
+	docker build -t ghcr.io/lindluni/actions-runner-manager .
+
 .PHONY: integration-tests
 integration-tests:
 	go test -cover ./integration/...

@@ -360,3 +360,7 @@ curl -H "Authorization: token gh_test-token" https:<host>/v1/api/group-create?te
 {"Response":"Runner group created successfully: test-team","StatusCode":200}
 ```
 
+## Why Distroless?
+
+https://github.com/GoogleContainerTools/distroless
+https://github.com/kubernetes/enhancements/blob/master/keps/sig-release/1729-rebase-images-to-distroless/README.md
