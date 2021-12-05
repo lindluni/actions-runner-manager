@@ -15,6 +15,21 @@ type listResponse struct {
 	Runners []string `json:"runners"`
 }
 
+type JSONResult struct {
+	Code     int         `json:"Code" `
+	Error    string      `json:"Message"`
+	Response interface{} `json:"Response"`
+}
+
+// DoGroupCreate Create a new GitHub Action organization Runner Group
+// @Summary      Create a new GitHub Action organization Runner Group
+// @Description  Creates a new GitHub Action organization runner group named with the team slug
+// @Tags         groups
+// @Produce      json
+// @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
+// @Success      200    {object}  JSONResult{data=string} "desc"
+// @Router       /groups-create/{team} [get]
+// @Security     ApiKeyAuth
 func (m *Manager) DoGroupCreate(c *gin.Context) {
 	uuid := requestid.Get(c)
 

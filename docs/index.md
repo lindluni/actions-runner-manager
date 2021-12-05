@@ -32,24 +32,90 @@ GitHub Professional Services lindluni@github.com https://github.com/lindluni/act
 
 ## All endpoints
 
+###  groups
+
+| Method  | URI     | Name   | Summary |
+|---------|---------|--------|---------|
+| GET | /api/v1/groups-create/{team} | [get groups create team](#get-groups-create-team) | Create a new GitHub Action organization Runner Group |
+  
+
+
 ###  tokens
 
 | Method  | URI     | Name   | Summary |
 |---------|---------|--------|---------|
-| GET | /api/v1/token-register/{team} | [get token register team](#get-token-register-team) | Creates a new GitHub Action organization runner registration token |
-| GET | /api/v1/token-remove/{team} | [get token remove team](#get-token-remove-team) | Creates a new GitHub Action organization runner removal token |
+| GET | /api/v1/token-register/{team} | [get token register team](#get-token-register-team) | Create a new GitHub Action organization runner registration token |
+| GET | /api/v1/token-remove/{team} | [get token remove team](#get-token-remove-team) | Create a new GitHub Action organization runner removal token |
   
 
 
 ## Paths
 
-### <span id="get-token-register-team"></span> Creates a new GitHub Action organization runner registration token (*GetTokenRegisterTeam*)
+### <span id="get-groups-create-team"></span> Create a new GitHub Action organization Runner Group (*GetGroupsCreateTeam*)
+
+```
+GET /api/v1/groups-create/{team}
+```
+
+Creates a new GitHub Action organization runner group named with the team slug
+
+#### Produces
+  * application/json
+
+#### Security Requirements
+  * ApiKeyAuth
+
+#### Parameters
+
+| Name | Source | Type | Go type | Separator | Required | Default | Description |
+|------|--------|------|---------|-----------| :------: |---------|-------------|
+| team | `path` | string | `string` |  | ✓ |  | Canonical **slug** of the GitHub team |
+
+#### All responses
+| Code | Status | Description | Has headers | Schema |
+|------|--------|-------------|:-----------:|--------|
+| [200](#get-groups-create-team-200) | OK | desc |  | [schema](#get-groups-create-team-200-schema) |
+
+#### Responses
+
+
+##### <span id="get-groups-create-team-200"></span> 200 - desc
+Status: OK
+
+###### <span id="get-groups-create-team-200-schema"></span> Schema
+   
+  
+
+[GetGroupsCreateTeamOKBody](#get-groups-create-team-o-k-body)
+
+###### Inlined models
+
+**<span id="get-groups-create-team-o-k-body"></span> GetGroupsCreateTeamOKBody**
+
+
+  
+
+
+* composed type [ApisJSONResult](#apis-json-result)
+* inlined member (*getGroupsCreateTeamOKBodyAO1*)
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| data | string| `string` |  | |  |  |
+
+
+
+### <span id="get-token-register-team"></span> Create a new GitHub Action organization runner registration token (*GetTokenRegisterTeam*)
 
 ```
 GET /api/v1/token-register/{team}
 ```
 
-Create a new GitHub Action organization runner registration token
+Creates a new GitHub Action organization runner removal token that can be used to configure GitHub Action runners at the organization level
 
 #### Produces
   * application/json
@@ -80,13 +146,13 @@ Status: OK
 
 [GithubRegistrationToken](#github-registration-token)
 
-### <span id="get-token-remove-team"></span> Creates a new GitHub Action organization runner removal token (*GetTokenRemoveTeam*)
+### <span id="get-token-remove-team"></span> Create a new GitHub Action organization runner removal token (*GetTokenRemoveTeam*)
 
 ```
 GET /api/v1/token-remove/{team}
 ```
 
-Create a new GitHub Action organization runner removal token
+Creates a new GitHub Action organization runner removal token that can be used remove a GitHub Action runners at the organization level
 
 #### Produces
   * application/json
@@ -118,6 +184,23 @@ Status: OK
 [GithubRegistrationToken](#github-registration-token)
 
 ## Models
+
+### <span id="apis-json-result"></span> apis.JSONResult
+
+
+  
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| Code | integer| `int64` |  | |  |  |
+| Message | string| `string` |  | |  |  |
+| Response | [interface{}](#interface)| `interface{}` |  | |  |  |
+
+
 
 ### <span id="github-registration-token"></span> github.RegistrationToken
 

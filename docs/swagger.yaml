@@ -1,5 +1,13 @@
 basePath: /api/v1
 definitions:
+  apis.JSONResult:
+    properties:
+      Code:
+        type: integer
+      Message:
+        type: string
+      Response: {}
+    type: object
   github.RegistrationToken:
     properties:
       expires_at:
@@ -24,9 +32,37 @@ info:
   title: Action Runner Manager API
   version: 0.1.0
 paths:
+  /groups-create/{team}:
+    get:
+      description: Creates a new GitHub Action organization runner group named with
+        the team slug
+      parameters:
+      - description: Canonical **slug** of the GitHub team
+        in: path
+        name: team
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            allOf:
+            - $ref: '#/definitions/apis.JSONResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new GitHub Action organization Runner Group
+      tags:
+      - groups
   /token-register/{team}:
     get:
-      description: Create a new GitHub Action organization runner registration token
+      description: Creates a new GitHub Action organization runner removal token that
+        can be used to configure GitHub Action runners at the organization level
       parameters:
       - description: Canonical **slug** of the GitHub team
         in: path
@@ -42,12 +78,13 @@ paths:
             $ref: '#/definitions/github.RegistrationToken'
       security:
       - ApiKeyAuth: []
-      summary: Creates a new GitHub Action organization runner registration token
+      summary: Create a new GitHub Action organization runner registration token
       tags:
       - tokens
   /token-remove/{team}:
     get:
-      description: Create a new GitHub Action organization runner removal token
+      description: Creates a new GitHub Action organization runner removal token that
+        can be used remove a GitHub Action runners at the organization level
       parameters:
       - description: Canonical **slug** of the GitHub team
         in: path
@@ -63,7 +100,7 @@ paths:
             $ref: '#/definitions/github.RegistrationToken'
       security:
       - ApiKeyAuth: []
-      summary: Creates a new GitHub Action organization runner removal token
+      summary: Create a new GitHub Action organization runner removal token
       tags:
       - tokens
 securityDefinitions:

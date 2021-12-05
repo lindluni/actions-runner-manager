@@ -31,6 +31,52 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/groups-create/{team}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Creates a new GitHub Action organization runner group named with the team slug",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Create a new GitHub Action organization Runner Group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Canonical **slug** of the GitHub team",
+                        "name": "team",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "desc",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/apis.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/token-register/{team}": {
             "get": {
                 "security": [
@@ -38,14 +84,14 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Create a new GitHub Action organization runner registration token",
+                "description": "Creates a new GitHub Action organization runner removal token that can be used to configure GitHub Action runners at the organization level",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "tokens"
                 ],
-                "summary": "Creates a new GitHub Action organization runner registration token",
+                "summary": "Create a new GitHub Action organization runner registration token",
                 "parameters": [
                     {
                         "type": "string",
@@ -72,14 +118,14 @@ var doc = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Create a new GitHub Action organization runner removal token",
+                "description": "Creates a new GitHub Action organization runner removal token that can be used remove a GitHub Action runners at the organization level",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "tokens"
                 ],
-                "summary": "Creates a new GitHub Action organization runner removal token",
+                "summary": "Create a new GitHub Action organization runner removal token",
                 "parameters": [
                     {
                         "type": "string",
@@ -101,6 +147,18 @@ var doc = `{
         }
     },
     "definitions": {
+        "apis.JSONResult": {
+            "type": "object",
+            "properties": {
+                "Code": {
+                    "type": "integer"
+                },
+                "Message": {
+                    "type": "string"
+                },
+                "Response": {}
+            }
+        },
         "github.RegistrationToken": {
             "type": "object",
             "properties": {

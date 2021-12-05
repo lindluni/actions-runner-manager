@@ -10,8 +10,8 @@ import (
 )
 
 // DoTokenRegister Request a GitHub Action organization runner registration token
-// @Summary      Creates a new GitHub Action organization runner registration token
-// @Description  Create a new GitHub Action organization runner registration token
+// @Summary      Create a new GitHub Action organization runner registration token
+// @Description  Creates a new GitHub Action organization runner removal token that can be used to configure GitHub Action runners at the organization level
 // @Tags         tokens
 // @Produce      json
 // @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
@@ -80,8 +80,8 @@ func (m *Manager) DoTokenRegister(c *gin.Context) {
 }
 
 // DoTokenRemove Request a GitHub Action organization runner removal token
-// @Summary      Creates a new GitHub Action organization runner removal token
-// @Description  Create a new GitHub Action organization runner removal token
+// @Summary      Create a new GitHub Action organization runner removal token
+// @Description  Creates a new GitHub Action organization runner removal token that can be used remove a GitHub Action runners at the organization level
 // @Tags         tokens
 // @Produce      json
 // @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
