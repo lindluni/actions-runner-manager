@@ -74,12 +74,12 @@ Creates a new GitHub Action organization runner group named with the team slug
 #### All responses
 | Code | Status | Description | Has headers | Schema |
 |------|--------|-------------|:-----------:|--------|
-| [200](#get-groups-create-team-200) | OK | desc |  | [schema](#get-groups-create-team-200-schema) |
+| [200](#get-groups-create-team-200) | OK | Success message |  | [schema](#get-groups-create-team-200-schema) |
 
 #### Responses
 
 
-##### <span id="get-groups-create-team-200"></span> 200 - desc
+##### <span id="get-groups-create-team-200"></span> 200 - Success message
 Status: OK
 
 ###### <span id="get-groups-create-team-200-schema"></span> Schema
@@ -105,7 +105,7 @@ Status: OK
 
 | Name | Type | Go type | Required | Default | Description | Example |
 |------|------|---------|:--------:| ------- |-------------|---------|
-| data | string| `string` |  | |  |  |
+| Response | string| `string` |  | |  |  |
 
 
 

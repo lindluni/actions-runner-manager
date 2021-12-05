@@ -57,7 +57,7 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "desc",
+                        "description": "Success message",
                         "schema": {
                             "allOf": [
                                 {
@@ -66,7 +66,7 @@ var doc = `{
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
+                                        "Response": {
                                             "type": "string"
                                         }
                                     }
