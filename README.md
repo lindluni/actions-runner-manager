@@ -151,6 +151,8 @@ Create a config file according to the documentation above, then run the followin
 
 **TO BE COMPLETED**
 
+---
+
 ## API's
 
 You can find detailed API documentation on our [GitHub Page](https://lindluni.github.io/actions-runner-manager/)
