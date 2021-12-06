@@ -142,6 +142,9 @@ func configureOrg(t *testing.T, slug string, client *github.Client, manager *api
 	resp, err = client.Teams.AddTeamRepoBySlug(context.Background(), manager.Config.Org, team.GetSlug(), manager.Config.Org, repo.GetName(), &github.TeamAddTeamRepoOptions{})
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNoContent, resp.StatusCode)
+
+	// TODO: Replace with `/ping` endpoint
+	time.Sleep(time.Second * 3)
 }
 
 func TestE2E(t *testing.T) {
