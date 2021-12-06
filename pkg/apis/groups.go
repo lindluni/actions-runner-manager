@@ -15,10 +15,15 @@ type listResponse struct {
 	Runners []string `json:"runners"`
 }
 
-type JSONResult struct {
+type JSONResultSuccess struct {
 	Code     int         `json:"Code" `
-	Error    string      `json:"Message"`
+	Error    string      `json:"Error"`
 	Response interface{} `json:"Response"`
+}
+
+type JSONResultError struct {
+	Code  int    `json:"Code" `
+	Error string `json:"Error"`
 }
 
 // DoGroupCreate Create a new GitHub Action organization Runner Group

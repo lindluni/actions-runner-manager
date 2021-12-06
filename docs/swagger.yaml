@@ -4,7 +4,7 @@ definitions:
     properties:
       Code:
         type: integer
-      Message:
+      Error:
         type: string
       Response: {}
     type: object
@@ -31,6 +31,7 @@ definitions:
       time.Time:
         type: string
     type: object
+host: hostname
 info:
   contact:
     email: lindluni@github.com

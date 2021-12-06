@@ -461,7 +461,7 @@ var doc = `{
                 "Code": {
                     "type": "integer"
                 },
-                "Message": {
+                "Error": {
                     "type": "string"
                 },
                 "Response": {}
@@ -525,7 +525,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "0.1.0",
-	Host:        "",
+	Host:        "hostname",
 	BasePath:    "/api/v1",
 	Schemes:     []string{},
 	Title:       "Action Runner Manager API",

@@ -552,7 +552,7 @@ Status: OK
 | Name | Type | Go type | Required | Default | Description | Example |
 |------|------|---------|:--------:| ------- |-------------|---------|
 | Code | integer| `int64` |  | |  |  |
-| Message | string| `string` |  | |  |  |
+| Error | string| `string` |  | |  |  |
 | Response | [interface{}](#interface)| `interface{}` |  | |  |  |
 
 
