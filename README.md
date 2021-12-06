@@ -17,9 +17,9 @@ assigned to a user who is a maintainer of a GitHub Team in the `Authorization` h
 **Notice**: Only users who are maintainers of a GitHub Team may use the Actions Runner Manager API's.
 
 When a user makes a request to any of the Actions Runner Manager API's, the `team` parameter is used as the name of the
-Runner Group. When a user calls `/group-create`, an Organization Runner Group is created with the name specified in the
-`team` parameter. All other API endpoints query or delete assets from the Organization Runner Group assigned to the
-`team` parameter.
+Runner Group. When a user calls `/group-create` or `/group-delete`, an Organization Runner Group is created or deleted
+with the name specified in the `team` parameter. All other API endpoints query or delete assets from the Organization 
+Runner Group assigned to the `team` parameter.
 
 When a user submits a valid GitHub API token to the Actions Runner Manager API's, the application first creates an
 authorized GitHub client using the users GitHub API token. The API then makes an authenticated API call as the
