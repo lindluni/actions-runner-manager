@@ -52,6 +52,7 @@ type Config struct {
 	AppID          int64   `yaml:"appID"`
 	InstallationID int64   `yaml:"installationID"`
 	PrivateKey     string  `yaml:"privateKey"`
+	RateLimit      float64 `yaml:"rateLimit"`
 	Logging        Logging `yaml:"logging"`
 	Server         Server  `yaml:"server"`
 }

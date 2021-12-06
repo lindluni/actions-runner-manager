@@ -4,6 +4,7 @@ SPDX-License-Identifier: Apache-2.0
 
 // TODO: Ensure all http error response paths return at the end
 // TODO: Move secrets to environment to protect them and add approvers for PR's
+// TODO: Implement a ping and healthz? endpoint
 
 package main
 
@@ -65,7 +66,7 @@ func main() {
 	logger.Debug("Created GitHub application installation configuration")
 
 	logger.Info("Initializing Rate Limiter")
-	lmt := tollbooth.NewLimiter(5, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
+	lmt := tollbooth.NewLimiter(config.RateLimit, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
 	lmt.SetHeader("Authorization", []string{})
 	lmt.SetHeaderEntryExpirationTTL(time.Hour)
 	lmt.SetMessage(`{"code":429,"response":"You have reached maximum request limit. Please try again in a few seconds."}`)
