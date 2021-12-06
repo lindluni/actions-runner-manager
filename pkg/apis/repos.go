@@ -22,7 +22,7 @@ import (
 // @Produce      json
 // @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
 // @Param        repos  path      []string  true  "Comma-seperated list of repository slugs"
-// @Success      200    {object}  JSONResult{Code=int,Response=string}
+// @Success      200    {object}  JSONResultSuccess{Code=int,Response=string}
 // @Router       /repos-add/{team}:{repos} [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoReposAdd(c *gin.Context) {
@@ -155,7 +155,7 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 // @Produce         json
 // @Param           team   path      string  true  "Canonical **slug** of the GitHub team"
 // @Param           repos  path      []string  true  "Comma-seperated list of repository slugs"
-// @Success         200    {object}  JSONResult{Code=int,Response=string}
+// @Success         200    {object}  JSONResultSuccess{Code=int,Response=string}
 // @Router          /repos-remove/{team}:{repos} [get]
 // @Security        ApiKeyAuth
 func (m *Manager) DoReposRemove(c *gin.Context) {
@@ -274,7 +274,7 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 // @Produce         json
 // @Param           team   path      string  true  "Canonical **slug** of the GitHub team"
 // @Param           repos  path      []string  true  "Comma-seperated list of repository slugs"
-// @Success         200    {object}  JSONResult{Code=int,Response=string}
+// @Success         200    {object}  JSONResultSuccess{Code=int,Response=string}
 // @Router          /repos-set/{team}:{repos} [get]
 // @Security        ApiKeyAuth
 func (m *Manager) DoReposSet(c *gin.Context) {

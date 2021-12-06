@@ -1,11 +1,9 @@
 basePath: /api/v1
 definitions:
-  apis.JSONResult:
+  apis.JSONResultSuccess:
     properties:
       Code:
         type: integer
-      Error:
-        type: string
       Response: {}
     type: object
   apis.listResponse:
@@ -61,7 +59,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/apis.JSONResult'
+            - $ref: '#/definitions/apis.JSONResultSuccess'
             - properties:
                 Code:
                   type: integer
@@ -90,7 +88,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/apis.JSONResult'
+            - $ref: '#/definitions/apis.JSONResultSuccess'
             - properties:
                 Code:
                   type: integer
@@ -119,7 +117,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/apis.JSONResult'
+            - $ref: '#/definitions/apis.JSONResultSuccess'
             - properties:
                 Code:
                   type: integer
@@ -156,7 +154,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/apis.JSONResult'
+            - $ref: '#/definitions/apis.JSONResultSuccess'
             - properties:
                 Code:
                   type: integer
@@ -193,7 +191,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/apis.JSONResult'
+            - $ref: '#/definitions/apis.JSONResultSuccess'
             - properties:
                 Code:
                   type: integer
@@ -230,7 +228,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/apis.JSONResult'
+            - $ref: '#/definitions/apis.JSONResultSuccess'
             - properties:
                 Code:
                   type: integer
@@ -260,7 +258,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/apis.JSONResult'
+            - $ref: '#/definitions/apis.JSONResultSuccess'
             - properties:
                 Code:
                   type: integer
@@ -289,7 +287,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/apis.JSONResult'
+            - $ref: '#/definitions/apis.JSONResultSuccess'
             - properties:
                 Code:
                   type: integer

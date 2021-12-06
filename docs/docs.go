@@ -61,7 +61,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/apis.JSONResult"
+                                    "$ref": "#/definitions/apis.JSONResultSuccess"
                                 },
                                 {
                                     "type": "object",
@@ -110,7 +110,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/apis.JSONResult"
+                                    "$ref": "#/definitions/apis.JSONResultSuccess"
                                 },
                                 {
                                     "type": "object",
@@ -159,7 +159,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/apis.JSONResult"
+                                    "$ref": "#/definitions/apis.JSONResultSuccess"
                                 },
                                 {
                                     "type": "object",
@@ -218,7 +218,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/apis.JSONResult"
+                                    "$ref": "#/definitions/apis.JSONResultSuccess"
                                 },
                                 {
                                     "type": "object",
@@ -277,7 +277,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/apis.JSONResult"
+                                    "$ref": "#/definitions/apis.JSONResultSuccess"
                                 },
                                 {
                                     "type": "object",
@@ -336,7 +336,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/apis.JSONResult"
+                                    "$ref": "#/definitions/apis.JSONResultSuccess"
                                 },
                                 {
                                     "type": "object",
@@ -385,7 +385,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/apis.JSONResult"
+                                    "$ref": "#/definitions/apis.JSONResultSuccess"
                                 },
                                 {
                                     "type": "object",
@@ -434,7 +434,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/apis.JSONResult"
+                                    "$ref": "#/definitions/apis.JSONResultSuccess"
                                 },
                                 {
                                     "type": "object",
@@ -455,14 +455,11 @@ var doc = `{
         }
     },
     "definitions": {
-        "apis.JSONResult": {
+        "apis.JSONResultSuccess": {
             "type": "object",
             "properties": {
                 "Code": {
                     "type": "integer"
-                },
-                "Error": {
-                    "type": "string"
                 },
                 "Response": {}
             }

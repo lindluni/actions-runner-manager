@@ -108,7 +108,7 @@ Status: OK
   
 
 
-* composed type [ApisJSONResult](#apis-json-result)
+* composed type [ApisJSONResultSuccess](#apis-json-result-success)
 * inlined member (*getGroupsCreateTeamOKBodyAO1*)
 
 
@@ -167,7 +167,7 @@ Status: OK
   
 
 
-* composed type [ApisJSONResult](#apis-json-result)
+* composed type [ApisJSONResultSuccess](#apis-json-result-success)
 * inlined member (*getGroupsDeleteTeamOKBodyAO1*)
 
 
@@ -226,7 +226,7 @@ Status: OK
   
 
 
-* composed type [ApisJSONResult](#apis-json-result)
+* composed type [ApisJSONResultSuccess](#apis-json-result-success)
 * inlined member (*getGroupsListTeamOKBodyAO1*)
 
 
@@ -286,7 +286,7 @@ Status: OK
   
 
 
-* composed type [ApisJSONResult](#apis-json-result)
+* composed type [ApisJSONResultSuccess](#apis-json-result-success)
 * inlined member (*getReposAddTeamReposOKBodyAO1*)
 
 
@@ -346,7 +346,7 @@ Status: OK
   
 
 
-* composed type [ApisJSONResult](#apis-json-result)
+* composed type [ApisJSONResultSuccess](#apis-json-result-success)
 * inlined member (*getReposRemoveTeamReposOKBodyAO1*)
 
 
@@ -406,7 +406,7 @@ Status: OK
   
 
 
-* composed type [ApisJSONResult](#apis-json-result)
+* composed type [ApisJSONResultSuccess](#apis-json-result-success)
 * inlined member (*getReposSetTeamReposOKBodyAO1*)
 
 
@@ -465,7 +465,7 @@ Status: OK
   
 
 
-* composed type [ApisJSONResult](#apis-json-result)
+* composed type [ApisJSONResultSuccess](#apis-json-result-success)
 * inlined member (*getTokenRegisterTeamOKBodyAO1*)
 
 
@@ -524,7 +524,7 @@ Status: OK
   
 
 
-* composed type [ApisJSONResult](#apis-json-result)
+* composed type [ApisJSONResultSuccess](#apis-json-result-success)
 * inlined member (*getTokenRemoveTeamOKBodyAO1*)
 
 
@@ -540,7 +540,7 @@ Status: OK
 
 ## Models
 
-### <span id="apis-json-result"></span> apis.JSONResult
+### <span id="apis-json-result-success"></span> apis.JSONResultSuccess
 
 
   
@@ -552,7 +552,6 @@ Status: OK
 | Name | Type | Go type | Required | Default | Description | Example |
 |------|------|---------|:--------:| ------- |-------------|---------|
 | Code | integer| `int64` |  | |  |  |
-| Error | string| `string` |  | |  |  |
 | Response | [interface{}](#interface)| `interface{}` |  | |  |  |
 
 
