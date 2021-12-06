@@ -142,9 +142,6 @@ func configureOrg(t *testing.T, slug string, client *github.Client, manager *api
 	resp, err = client.Teams.AddTeamRepoBySlug(context.Background(), manager.Config.Org, team.GetSlug(), manager.Config.Org, repo.GetName(), &github.TeamAddTeamRepoOptions{})
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNoContent, resp.StatusCode)
-
-	// TODO: Replace with `/ping` endpoint
-	time.Sleep(time.Second * 10)
 }
 
 func TestE2E(t *testing.T) {
@@ -153,10 +150,6 @@ func TestE2E(t *testing.T) {
 	manager.SetRoutes()
 	client := createGitHubClient(t, manager.Config, privateKey)
 	configureOrg(t, slug, client, manager)
-
-	go func() {
-		manager.Server.ListenAndServe()
-	}()
 
 	defer func() {
 		resp, err := client.Teams.DeleteTeamBySlug(context.Background(), manager.Config.Org, slug)
@@ -186,11 +179,32 @@ func TestE2E(t *testing.T) {
 			require.NoError(t, err)
 		}
 	}()
+
+	go func() {
+		manager.Server.ListenAndServe()
+	}()
+
+	i := 0
+	httpClient := &http.Client{}
+	url := fmt.Sprintf("http://%s/api/v1/status", manager.Server.Addr)
+	req, err := http.NewRequest("GET", url, nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", os.Getenv("MANAGER_ADMIN_PAT"))
+	for ; i < 10; i++ {
+		resp, err := httpClient.Do(req)
+		require.NoError(t, err)
+		if resp.StatusCode == http.StatusOK {
+			break
+		}
+		time.Sleep(time.Second * 3)
+	}
+	require.Less(t, i, 10)
+
 	expected := &Response{
 		Code:     http.StatusOK,
 		Response: fmt.Sprintf("Runner group created successfully: %s", slug),
 	}
-	url := fmt.Sprintf("http://%s/api/v1/group-create?team=%s", manager.Server.Addr, slug)
+	url = fmt.Sprintf("http://%s/api/v1/group-create?team=%s", manager.Server.Addr, slug)
 	response := doGet(t, url)
 	require.Equal(t, expected, response)
 

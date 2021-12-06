@@ -148,8 +148,15 @@ func (m *Manager) SetRoutes() {
 		v1.GET("/repos-set", LimitHandler(m.Limit), m.DoReposSet)
 		v1.GET("/token-register", LimitHandler(m.Limit), m.DoTokenRegister)
 		v1.GET("/token-remove", LimitHandler(m.Limit), m.DoTokenRemove)
+		v1.GET("/status", LimitHandler(m.Limit), m.Status)
 	}
 	m.Logger.Debug("Initialized API endpoints")
+}
+
+func (m *Manager) Status(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Server ready",
+	})
 }
 
 func LimitHandler(lmt *limiter.Limiter) gin.HandlerFunc {
