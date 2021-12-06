@@ -18,7 +18,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: !startsWith(github.ref, 'refs')
+        if: ${{ !startsWith(github.ref, 'refs') }}
         with:
           files: dist/actions-runner-manager
           generate_release_notes: true
