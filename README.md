@@ -2,13 +2,15 @@
 
 [![Merge Tests](https://github.com/lindluni/actions-runner-manager/actions/workflows/merge.yml/badge.svg)](https://github.com/lindluni/actions-runner-manager/actions/workflows/merge.yml)
 
+#### *Notice*: Actions Runner Manager does not currently support GitHub Enterprise.
+
 Actions Runner Manager is a GitHub Application that can be used by users who are not organization owners to manage
 GitHub Actions Organization Runner Groups. Actions Runner Manager implements RBAC policies built on top of GitHub 
 Teams and exposes a set of authenticated API's to grant access to the GitHub Organization Self-Hosted Runner REST API's.
 
 ### Authorization
 
-Actions Runner Manager uses existing GitHub Teams to manage RBAC policies. Every call requires a user to submit a valid GitHub API token
+Actions Runner Manager uses existing GitHub Teams to create a pseudo-RBAC policy. Every call requires a user to submit a valid GitHub API token
 assigned to a user who is a maintainer of a GitHub Team in the `Authorization` header.
 
 **Notice**: Only users who are maintainers of a GitHub Team may use the Actions Runner Manager API's.
@@ -37,7 +39,65 @@ rate limit policy. The rate limit cache is purged every 60 minutes. The rate lim
 authenticated requests a user can make per second. If you encounter a rate limit error, you should wait a few seconds
 and attempt your request again.
 
-### Sample Configuration
+### GitHub Application Configuration
+
+To configure the Actions Runner Manager, you must create and install a GitHub App. The app must be configured with
+the following permissions:
+
+```text
+Repository:
+    Metadata: Read-Only
+Organization:
+    Members: Read-Only
+    Administration: Read and Write
+    Self-Hosted Runners: Read and Write
+```
+
+**Note**: The Actions Runner Manager does not currently make use of Webhooks or Callbacks, you may leave these options
+blank when creating the GitHub Application. 
+
+Once you have created a GitHub App, you must install the application in your organization and give it permission
+to the repositories you want it to be able to assign runner groups to.
+
+You can follow GitHub's documentation on how to create and install a GitHub App here:
+- [Create a GitHub App](https://docs.github.com/en/developers/apps/building-github-apps/creating-a-github-app)
+- [Installing a GitHub App](https://docs.github.com/en/developers/apps/managing-github-apps/installing-github-apps)
+
+### Actions Runner Manager Configuration
+
+The Actions Manager reads a static YAML file to create its configuration. By default the config file is read from the
+directory in which the application is run from with a file name of `config.yml`. Users can override the default path by
+setting the `CONFIG_PATH` environment variable, for example: `export CONFIG_PATH=/opt/arm/config.yml`.
+
+The configuration file is a YAML file with the following structure:
+```yaml
+org: "<GitHub Organization>"
+appID: <GitHub Application ID>
+installationID: <GitHub Application Installation ID>
+privateKey: "<Base64 Encoded GitHub Application Private Key>"
+rateLimit: <Maximum number of authenticated requests a user can make per second>
+logging:
+  compress: (true or false) <Compress rotated log files>
+  ephemeral: (true or false) <Log to stdout instead of rotating log files>
+  level: (debug, info, warn, error, or fatal) <Logging level>
+  logDirectory: <Relative or absolut directory to log to>
+  maxAge: <Maximum number of days to keep log files>
+  maxBackups: <Maximum number of log files to keep>
+  maxSize: <Maximum size of log files in bytes before rotation>
+server:
+  address: "<IP Address or Hostname bind interface>"
+  port: <Port to bind to>
+  tls:
+    enabled: (true or false) <Enable TLS>
+    certFile: "<Path to TLS certificate file>"
+    keyFile: "<Path to TLS key file>"
+```
+
+**Note**: You can encode your private into Base64 by using the following command after downloading it from the GitHub UI:
+
+```shell
+    cat <private_key_file> | base64
+```
 
 ### API's
 
