@@ -105,6 +105,8 @@ server:
 **Security Notice**: Actions Runner Manager should never run in non-TLS mode when in production. Users should configure
 TLS on the server directly or use some form of software or hardware to enforce TLS.
 
+---
+
 ### Standalone
 
 Download the current binary from: https://github.com/lindluni/actions-runner-manager/releases
@@ -122,6 +124,8 @@ Then create a config file according to the documentation above, then run the bin
 ```
 
 It is recommended you use a Service Manager such as systemd to ensure the server is running.
+
+---
 
 ### Docker
 
@@ -141,7 +145,9 @@ Create a config file according to the documentation above, then run the followin
     ghcr.io/lindluni/actions-runner-manager:latest
 ```
 
-### Kubernetes
+---
+
+### Kubernetes Using Helm
 
 **TO BE COMPLETED**
 
