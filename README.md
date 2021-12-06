@@ -139,7 +139,7 @@ API token to pull the image using the following command:
 Create a config file according to the documentation above, then run the following command:
 
 ```shell
-    docker run -it -d \
+    docker run -it -d --restart always \
     -v <absolute_path_to_config_file>:<config.yml> \
     -p <local port>:<port set in config> \
     ghcr.io/lindluni/actions-runner-manager:latest
