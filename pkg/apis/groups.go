@@ -17,7 +17,6 @@ type listResponse struct {
 
 type JSONResultSuccess struct {
 	Code     int         `json:"Code" `
-	Error    string      `json:"Error"`
 	Response interface{} `json:"Response"`
 }
 
