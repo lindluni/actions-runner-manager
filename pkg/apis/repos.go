@@ -27,9 +27,9 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	m.Logger.Info("Retrieving team parameter")
 	team := c.Query("team")
 	if team == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Code":  http.StatusBadRequest,
-			"Error": "Missing required parameter: team",
+		c.JSON(http.StatusBadRequest, &JSONResultError{
+			Code:  http.StatusBadRequest,
+			Error: "Missing required parameter: team",
 		})
 		return
 	}
@@ -38,9 +38,9 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving repo parameter")
 	repos := c.Query("repos")
 	if repos == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Code":  http.StatusBadRequest,
-			"Error": "Missing required parameter: repos",
+		c.JSON(http.StatusBadRequest, &JSONResultError{
+			Code:  http.StatusBadRequest,
+			Error: "Missing required parameter: repos",
 		})
 		return
 	}
@@ -50,9 +50,9 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving Authorization header")
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": "Missing Authorization header",
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: "Missing Authorization header",
 		})
 		return
 	}
@@ -61,16 +61,16 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Verifying maintainership")
 	isMaintainer, err := m.verifyMaintainership(token, team, uuid)
 	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"Code":  http.StatusUnauthorized,
-			"Error": "User is not a maintainer of the team",
+		c.JSON(http.StatusUnauthorized, &JSONResultError{
+			Code:  http.StatusUnauthorized,
+			Error: "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -79,9 +79,9 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving runner group ID")
 	groupID, statusCode, err := m.retrieveGroupID(team, uuid)
 	if err != nil {
-		c.JSON(statusCode, gin.H{
-			"Code":  statusCode,
-			"Error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
+		c.JSON(statusCode, &JSONResultError{
+			Code:  statusCode,
+			Error: fmt.Sprintf("Unable to retrieve group ID: %v", err),
 		})
 		return
 	}
@@ -95,9 +95,9 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 	for {
 		teamRepos, resp, err := m.TeamsClient.ListTeamReposBySlug(ctx, m.Config.Org, team, opts)
 		if err != nil {
-			c.JSON(resp.StatusCode, gin.H{
-				"Code":  resp.StatusCode,
-				"Error": fmt.Sprintf("Unable to retrieve team repos: %v", err),
+			c.JSON(resp.StatusCode, &JSONResultError{
+				Code:  resp.StatusCode,
+				Error: fmt.Sprintf("Unable to retrieve team repos: %v", err),
 			})
 			return
 		}
@@ -114,9 +114,9 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 		m.Logger.Infof("Checking if team %s has access to repo %s", team, name)
 		id, err := findRepoID(name, assignedRepos)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"Code":  http.StatusNotFound,
-				"Error": fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err),
+			c.JSON(http.StatusNotFound, &JSONResultError{
+				Code:  http.StatusNotFound,
+				Error: fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err),
 			})
 			return
 		}
@@ -129,18 +129,18 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 		m.Logger.Infof("Adding repo %s to runner group %s", name, team)
 		resp, err := m.ActionsClient.AddRepositoryAccessRunnerGroup(ctx, m.Config.Org, *groupID, repoID)
 		if err != nil {
-			c.JSON(resp.StatusCode, gin.H{
-				"Code":  resp.StatusCode,
-				"Error": fmt.Sprintf("Unable to add repo %s to runner group %s: %v", name, team, err),
+			c.JSON(resp.StatusCode, &JSONResultError{
+				Code:  resp.StatusCode,
+				Error: fmt.Sprintf("Unable to add repo %s to runner group %s: %v", name, team, err),
 			})
 			return
 		}
 	}
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Added repositories to runner group")
 
-	c.JSON(http.StatusOK, gin.H{
-		"Code":     http.StatusOK,
-		"Response": "Successfully added repositories to runner group",
+	c.JSON(http.StatusOK, &JSONResultSuccess{
+		Code:     http.StatusOK,
+		Response: "Successfully added repositories to runner group",
 	})
 }
 
@@ -160,9 +160,9 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	m.Logger.Info("Retrieving team parameter")
 	team := c.Query("team")
 	if team == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Code":  http.StatusBadRequest,
-			"Error": "Missing required parameter: team",
+		c.JSON(http.StatusBadRequest, &JSONResultError{
+			Code:  http.StatusBadRequest,
+			Error: "Missing required parameter: team",
 		})
 		return
 	}
@@ -171,9 +171,9 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving repos parameter")
 	repos := c.Query("repos")
 	if repos == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Code":  http.StatusBadRequest,
-			"Error": "Missing required parameter: repos",
+		c.JSON(http.StatusBadRequest, &JSONResultError{
+			Code:  http.StatusBadRequest,
+			Error: "Missing required parameter: repos",
 		})
 		return
 	}
@@ -183,9 +183,9 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving Authorization header")
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": "Missing Authorization header",
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: "Missing Authorization header",
 		})
 		return
 	}
@@ -194,16 +194,16 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Verifying maintainership")
 	isMaintainer, err := m.verifyMaintainership(token, team, uuid)
 	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"Code":  http.StatusUnauthorized,
-			"Error": "User is not a maintainer of the team",
+		c.JSON(http.StatusUnauthorized, &JSONResultError{
+			Code:  http.StatusUnauthorized,
+			Error: "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -212,9 +212,9 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving runner group ID")
 	groupID, statusCode, err := m.retrieveGroupID(team, uuid)
 	if err != nil {
-		c.JSON(statusCode, gin.H{
-			"Code":  statusCode,
-			"Error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
+		c.JSON(statusCode, &JSONResultError{
+			Code:  statusCode,
+			Error: fmt.Sprintf("Unable to retrieve group ID: %v", err),
 		})
 		return
 	}
@@ -227,15 +227,15 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 		repo, resp, err := m.RepositoriesClient.Get(ctx, m.Config.Org, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				c.JSON(resp.StatusCode, gin.H{
-					"Code":  resp.StatusCode,
-					"Error": fmt.Sprintf("Repository %s not found", name),
+				c.JSON(resp.StatusCode, &JSONResultError{
+					Code:  resp.StatusCode,
+					Error: fmt.Sprintf("Repository %s not found", name),
 				})
 				return
 			}
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"Code":  http.StatusInternalServerError,
-				"Error": fmt.Sprintf("Unable to retrieve repository %s: %v", name, err),
+			c.JSON(http.StatusInternalServerError, &JSONResultError{
+				Code:  http.StatusInternalServerError,
+				Error: fmt.Sprintf("Unable to retrieve repository %s: %v", name, err),
 			})
 			return
 		}
@@ -248,18 +248,18 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 		m.Logger.Infof("Removing repo %s from runner group %s", name, team)
 		resp, err := m.ActionsClient.RemoveRepositoryAccessRunnerGroup(ctx, m.Config.Org, *groupID, repoID)
 		if err != nil {
-			c.JSON(resp.StatusCode, gin.H{
-				"Code":  resp.StatusCode,
-				"Error": fmt.Sprintf("Unable to remove repo %s from runner group %s: %v", name, team, err),
+			c.JSON(resp.StatusCode, &JSONResultError{
+				Code:  resp.StatusCode,
+				Error: fmt.Sprintf("Unable to remove repo %s from runner group %s: %v", name, team, err),
 			})
 			return
 		}
 	}
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Removed repositories from runner group")
 
-	c.JSON(http.StatusOK, gin.H{
-		"Code":     http.StatusOK,
-		"Response": "Successfully removed repositories from runner group",
+	c.JSON(http.StatusOK, &JSONResultSuccess{
+		Code:     http.StatusOK,
+		Response: "Successfully removed repositories from runner group",
 	})
 }
 
@@ -279,9 +279,9 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	m.Logger.Info("Retrieving team parameter")
 	team := c.Query("team")
 	if team == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Code":  http.StatusBadRequest,
-			"Error": "Missing required parameter: team",
+		c.JSON(http.StatusBadRequest, &JSONResultError{
+			Code:  http.StatusBadRequest,
+			Error: "Missing required parameter: team",
 		})
 		return
 	}
@@ -290,9 +290,9 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving assignedRepos parameter")
 	repos := c.Query("repos")
 	if repos == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Code":  http.StatusBadRequest,
-			"Error": "Missing required parameter: repos",
+		c.JSON(http.StatusBadRequest, &JSONResultError{
+			Code:  http.StatusBadRequest,
+			Error: "Missing required parameter: repos",
 		})
 		return
 	}
@@ -302,9 +302,9 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving Authorization header")
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": "Missing Authorization header",
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: "Missing Authorization header",
 		})
 		return
 	}
@@ -313,16 +313,16 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Verifying maintainership")
 	isMaintainer, err := m.verifyMaintainership(token, team, uuid)
 	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"Code":  http.StatusUnauthorized,
-			"Error": "User is not a maintainer of the team",
+		c.JSON(http.StatusUnauthorized, &JSONResultError{
+			Code:  http.StatusUnauthorized,
+			Error: "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -335,9 +335,9 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	for {
 		teamRepos, resp, err := m.TeamsClient.ListTeamReposBySlug(ctx, m.Config.Org, team, opts)
 		if err != nil {
-			c.JSON(resp.StatusCode, gin.H{
-				"Code":  resp.StatusCode,
-				"Error": fmt.Sprintf("Unable to retrieve team assignedRepos: %v", err),
+			c.JSON(resp.StatusCode, &JSONResultError{
+				Code:  resp.StatusCode,
+				Error: fmt.Sprintf("Unable to retrieve team assignedRepos: %v", err),
 			})
 			return
 		}
@@ -355,9 +355,9 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 		m.Logger.Infof("Checking if team %s has access to repo %s", team, name)
 		id, err := findRepoID(name, assignedRepos)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"Code":  http.StatusNotFound,
-				"Error": fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err),
+			c.JSON(http.StatusNotFound, &JSONResultError{
+				Code:  http.StatusNotFound,
+				Error: fmt.Sprintf("Repo %s not found in team %s: %v", name, team, err),
 			})
 			return
 		}
@@ -368,9 +368,9 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving runner group ID")
 	groupID, statusCode, err := m.retrieveGroupID(team, uuid)
 	if err != nil {
-		c.JSON(statusCode, gin.H{
-			"Code":  statusCode,
-			"Error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
+		c.JSON(statusCode, &JSONResultError{
+			Code:  statusCode,
+			Error: fmt.Sprintf("Unable to retrieve group ID: %v", err),
 		})
 		return
 	}
@@ -381,17 +381,17 @@ func (m *Manager) DoReposSet(c *gin.Context) {
 		SelectedRepositoryIDs: repoIDs,
 	})
 	if err != nil {
-		c.JSON(resp.StatusCode, gin.H{
-			"Code":  resp.StatusCode,
-			"Error": fmt.Sprintf("Unable to set repositories for runner group %s: %v", team, err),
+		c.JSON(resp.StatusCode, &JSONResultError{
+			Code:  resp.StatusCode,
+			Error: fmt.Sprintf("Unable to set repositories for runner group %s: %v", team, err),
 		})
 		return
 	}
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Added repositories to runner group")
 
-	c.JSON(http.StatusOK, gin.H{
-		"Code":     http.StatusOK,
-		"Response": "Successfully added repositories to runner group",
+	c.JSON(http.StatusOK, &JSONResultSuccess{
+		Code:     http.StatusOK,
+		Response: "Successfully added repositories to runner group",
 	})
 }
 

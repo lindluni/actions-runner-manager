@@ -40,9 +40,9 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 	m.Logger.Info(c, "Retrieving team parameter")
 	team := c.Query("team")
 	if team == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Code":  http.StatusBadRequest,
-			"Error": "Missing required parameter: team",
+		c.JSON(http.StatusBadRequest, &JSONResultError{
+			Code:  http.StatusBadRequest,
+			Error: "Missing required parameter: team",
 		})
 		return
 	}
@@ -51,9 +51,9 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving Authorization header")
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": "Missing Authorization header",
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: "Missing Authorization header",
 		})
 		return
 	}
@@ -62,16 +62,16 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Verifying maintainership")
 	isMaintainer, err := m.verifyMaintainership(token, team, uuid)
 	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"Code":  http.StatusUnauthorized,
-			"Error": "User is not a maintainer of the team",
+		c.JSON(http.StatusUnauthorized, &JSONResultError{
+			Code:  http.StatusUnauthorized,
+			Error: "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -86,23 +86,23 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 	})
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusConflict {
-			c.JSON(http.StatusConflict, gin.H{
-				"Code":  http.StatusConflict,
-				"Error": fmt.Sprintf("Runner group already exists: %s", team),
+			c.JSON(http.StatusConflict, &JSONResultError{
+				Code:  http.StatusConflict,
+				Error: fmt.Sprintf("Runner group already exists: %s", team),
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"Code":  http.StatusInternalServerError,
-			"Error": fmt.Sprintf("Unable to create runner group: %v", err),
+		c.JSON(http.StatusInternalServerError, &JSONResultError{
+			Code:  http.StatusInternalServerError,
+			Error: fmt.Sprintf("Unable to create runner group: %v", err),
 		})
 		return
 	}
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Created runner group")
 
-	c.JSON(http.StatusOK, gin.H{
-		"Code":     http.StatusOK,
-		"Response": fmt.Sprintf("Runner group created successfully: %s", group.GetName()),
+	c.JSON(http.StatusOK, &JSONResultSuccess{
+		Code:     http.StatusOK,
+		Response: fmt.Sprintf("Runner group created successfully: %s", group.GetName()),
 	})
 }
 
@@ -121,9 +121,9 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	m.Logger.Info(c, "Retrieving team parameter")
 	team := c.Query("team")
 	if team == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Code":  http.StatusBadRequest,
-			"Error": "Missing required parameter: team",
+		c.JSON(http.StatusBadRequest, &JSONResultError{
+			Code:  http.StatusBadRequest,
+			Error: "Missing required parameter: team",
 		})
 		return
 	}
@@ -132,9 +132,9 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving Authorization header")
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": "Missing Authorization header",
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: "Missing Authorization header",
 		})
 		return
 	}
@@ -143,16 +143,16 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Verifying maintainership")
 	isMaintainer, err := m.verifyMaintainership(token, team, uuid)
 	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"Code":  http.StatusUnauthorized,
-			"Error": "User is not a maintainer of the team",
+		c.JSON(http.StatusUnauthorized, &JSONResultError{
+			Code:  http.StatusUnauthorized,
+			Error: "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -161,9 +161,9 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving runner group ID")
 	groupID, statusCode, err := m.retrieveGroupID(team, uuid)
 	if err != nil {
-		c.JSON(statusCode, gin.H{
-			"Code":  statusCode,
-			"Error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
+		c.JSON(statusCode, &JSONResultError{
+			Code:  statusCode,
+			Error: fmt.Sprintf("Unable to retrieve group ID: %v", err),
 		})
 		return
 	}
@@ -173,17 +173,17 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Deleting runner group")
 	resp, err := m.ActionsClient.DeleteOrganizationRunnerGroup(ctx, m.Config.Org, *groupID)
 	if err != nil {
-		c.JSON(resp.StatusCode, gin.H{
-			"Code":  resp.StatusCode,
-			"Error": fmt.Sprintf("Unable to delete runner group: %v", err),
+		c.JSON(resp.StatusCode, &JSONResultError{
+			Code:  resp.StatusCode,
+			Error: fmt.Sprintf("Unable to delete runner group: %v", err),
 		})
 		return
 	}
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Deleted runner group")
 
-	c.JSON(http.StatusOK, gin.H{
-		"Code":     http.StatusOK,
-		"Response": fmt.Sprintf("Runner group deleted successfully: %s", team),
+	c.JSON(http.StatusOK, &JSONResultSuccess{
+		Code:     http.StatusOK,
+		Response: fmt.Sprintf("Runner group deleted successfully: %s", team),
 	})
 }
 
@@ -202,9 +202,9 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	m.Logger.Info(c, "Retrieving team parameter")
 	team := c.Query("team")
 	if team == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Code":  http.StatusBadRequest,
-			"Error": "Missing required parameter: team",
+		c.JSON(http.StatusBadRequest, &JSONResultError{
+			Code:  http.StatusBadRequest,
+			Error: "Missing required parameter: team",
 		})
 		return
 	}
@@ -213,9 +213,9 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving Authorization header")
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": "Missing Authorization header",
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: "Missing Authorization header",
 		})
 		return
 	}
@@ -224,16 +224,16 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Verifying maintainership")
 	isMaintainer, err := m.verifyMaintainership(token, team, uuid)
 	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"Code":  http.StatusForbidden,
-			"Error": fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: fmt.Sprintf("Unable to validate user is a team maintainer: %v", err),
 		})
 		return
 	}
 	if !isMaintainer {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"Code":  http.StatusUnauthorized,
-			"Error": "User is not a maintainer of the team",
+		c.JSON(http.StatusUnauthorized, &JSONResultError{
+			Code:  http.StatusUnauthorized,
+			Error: "User is not a maintainer of the team",
 		})
 		return
 	}
@@ -242,9 +242,9 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving runner group ID")
 	groupID, statusCode, err := m.retrieveGroupID(team, uuid)
 	if err != nil {
-		c.JSON(statusCode, gin.H{
-			"Code":  statusCode,
-			"Error": fmt.Sprintf("Unable to retrieve group ID: %v", err),
+		c.JSON(statusCode, &JSONResultError{
+			Code:  statusCode,
+			Error: fmt.Sprintf("Unable to retrieve group ID: %v", err),
 		})
 		return
 	}
@@ -257,9 +257,9 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	for {
 		runnerGroupRunners, resp, err := m.ActionsClient.ListRunnerGroupRunners(ctx, m.Config.Org, *groupID, opts)
 		if err != nil {
-			c.JSON(resp.StatusCode, gin.H{
-				"Code":  resp.StatusCode,
-				"Error": fmt.Sprintf("Unable to list runners: %v", err),
+			c.JSON(resp.StatusCode, &JSONResultError{
+				Code:  resp.StatusCode,
+				Error: fmt.Sprintf("Unable to list runners: %v", err),
 			})
 			return
 		}
@@ -284,9 +284,9 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	for {
 		runnerGroupRepos, resp, err := m.ActionsClient.ListRepositoryAccessRunnerGroup(ctx, m.Config.Org, *groupID, opts)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"Code":  http.StatusInternalServerError,
-				"Error": fmt.Sprintf("Unable to list repositories: %v", err),
+			c.JSON(http.StatusInternalServerError, &JSONResultError{
+				Code:  http.StatusInternalServerError,
+				Error: fmt.Sprintf("Unable to list repositories: %v", err),
 			})
 			return
 		}
@@ -318,8 +318,8 @@ func (m *Manager) DoGroupList(c *gin.Context) {
 	}
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug(c, "Generated Response")
 
-	c.JSON(http.StatusOK, gin.H{
-		"Code":     http.StatusOK,
-		"Response": listResponse,
+	c.JSON(http.StatusOK, &JSONResultSuccess{
+		Code:     http.StatusOK,
+		Response: listResponse,
 	})
 }
