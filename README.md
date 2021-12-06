@@ -1,15 +1,15 @@
-## Actions Runner Manager
+# Actions Runner Manager
 
 [![Merge Tests](https://github.com/lindluni/actions-runner-manager/actions/workflows/merge.yml/badge.svg)](https://github.com/lindluni/actions-runner-manager/actions/workflows/merge.yml)
 
-### Notice: Actions Runner Manager does not currently support GitHub Enterprise Server
+## Notice: Actions Runner Manager does not currently support GitHub Enterprise Server
 
 Actions Runner Manager is a GitHub Application that can be used by users who are not organization owners to manage
 GitHub Actions Organization Runner Groups. Actions Runner Manager implements pseudo-RBAC policies built on top of GitHub 
 Teams and exposes a set of authenticated API's to grant access to the GitHub Organization Self-Hosted Runner REST API's
 which are generally only available to organization owners.
 
-### Authorization
+## Authorization
 
 Actions Runner Manager uses existing GitHub Teams to create a pseudo-RBAC policy. Every call requires a user to submit a valid GitHub API token
 assigned to a user who is a maintainer of a GitHub Team in the `Authorization` header.
@@ -33,14 +33,14 @@ private Personally Identifiable Information (PII) such as email addresses. As su
 tightly scoped to only the Teams they need access to in order to limit risk and exposure.
 
 
-### Rate Limiting
+## Rate Limiting
 
 To protect the integrity of the server, Actions Runner Manager uses a rate limit cache to enforce an admin configured
 rate limit policy. The rate limit cache is purged every 60 minutes. The rate limit setting defines the maximum number of
 authenticated requests a user can make per second. If you encounter a rate limit error, you should wait a few seconds
 and attempt your request again.
 
-### GitHub Application Configuration
+## GitHub Application Configuration
 
 To configure the Actions Runner Manager, you must create and install a GitHub App. The app must be configured with
 the following permissions:
@@ -64,7 +64,7 @@ You can follow GitHub's documentation on how to create and install a GitHub App 
 - [Create a GitHub App](https://docs.github.com/en/developers/apps/building-github-apps/creating-a-github-app)
 - [Installing a GitHub App](https://docs.github.com/en/developers/apps/managing-github-apps/installing-github-apps)
 
-### Actions Runner Manager Configuration
+## Actions Runner Manager Configuration
 
 The Actions Manager reads a static YAML file to create its configuration. By default the config file is read from the
 directory in which the application is run from with a file name of `config.yml`. Users can override the default path by
@@ -100,7 +100,46 @@ server:
     cat <private_key_file> | base64
 ```
 
-### API's
+## Running the Server
+
+**Security Notice**: Actions Runner Manager should never run in non-TLS mode when in production. Users should configure
+TLS on the server directly or use some form of software or hardware to enforce TLS.
+
+### Standalone
+
+Download the current binary from: https://github.com/lindluni/actions-runner-manager/releases
+
+or
+
+Build the current binary using the Go toolchain: `go install github.com/lindluni/actions-runner-manager/pkg`
+
+Then create a config file according to the documentation above, then run the binary with the following command:
+```shell
+    ./actions-runner-manager
+```
+
+It is recommended you use a Service Manager such as systemd to ensure the server is running.
+
+### Docker
+
+Actions Runner Manager hosts it's image on the GitHub Container Registry. You must first authenticate using a GitHub
+API token to pull the image using the following command:
+
+```shell
+    docker login -u <GitHub Username> -p <GitHub API Token> ghcr.io
+```
+
+Create a config file according to the documentation above, then run the following command:
+
+```shell
+    docker run -it -d -v <absolute_path_to_config_file>:<config.yml> -p <local port>:<port set in config> ghcr.io/lindluni/actions-runner-manager:latest
+```
+
+### Kubernetes
+
+**TO BE COMPLETED**
+
+## API's
 
 You can find detailed API documentation on our [GitHub Page](https://lindluni.github.io/actions-runner-manager/)
 
