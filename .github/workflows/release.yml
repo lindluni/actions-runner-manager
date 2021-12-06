@@ -33,3 +33,4 @@ jobs:
           generate_release_notes: true
           name: ${{ steps.vars.outputs.tag }}
           tag_name: ${{ steps.vars.outputs.tag }}
+          token: ${{ secrets.MANAGER_ADMIN_PAT }}
