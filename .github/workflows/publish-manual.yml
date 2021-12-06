@@ -1,7 +1,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-name: Publish Container Manual
+name: Publish Container Manually
 on:
   workflow_dispatch:
     inputs:
