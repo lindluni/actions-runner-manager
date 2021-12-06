@@ -17,7 +17,7 @@ assigned to a user who is a maintainer of a GitHub Team in the `Authorization` h
 **Notice**: Only users who are maintainers of a GitHub Team may use the Actions Runner Manager API's.
 
 When a user submits a valid GitHub API token to the Actions Runner Manager API's, the application first creates an
-authorized GitHub client using the users GitHub API token. The API then makes a single authenticated API call as the
+authorized GitHub client using the users GitHub API token. The API then makes an authenticated API call as the
 user to the `/user` GitHub API endpoint documented here: https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
 
 This call returns the GitHub Users object of which the only information retrieved is the users `login` property. This
@@ -66,7 +66,7 @@ You can follow GitHub's documentation on how to create and install a GitHub App 
 
 ## Actions Runner Manager Configuration
 
-The Actions Manager reads a static YAML file to create its configuration. By default the config file is read from the
+The Actions Manager reads a static YAML file to create its configuration. By default, the config file is read from the
 directory in which the application is run from with a file name of `config.yml`. Users can override the default path by
 setting the `CONFIG_PATH` environment variable, for example: `export CONFIG_PATH=/opt/arm/config.yml`.
 
@@ -129,7 +129,7 @@ It is recommended you use a Service Manager such as systemd to ensure the server
 
 ### Docker
 
-Actions Runner Manager hosts it's image on the GitHub Container Registry. You must first authenticate using a GitHub
+Actions Runner Manager hosts its image on the GitHub Container Registry. You must first authenticate using a GitHub
 API token to pull the image using the following command:
 
 ```shell
@@ -201,7 +201,7 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-remove?team
 
 ### `/api/v1/repos-set`
 
-- Replace all of the existing repositories assigned to an existing GitHub Actions Runner Group with one or more new repositories
+- Replace all existing repositories assigned to an existing GitHub Actions Runner Group with one or more new repositories
 
 ```shell
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-set?team=<team_slug>&repos=<repo1>,<repo2>,<repo3>"
@@ -225,5 +225,15 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/token-remove?team
 
 ## Why Distroless?
 
-https://github.com/GoogleContainerTools/distroless
-https://github.com/kubernetes/enhancements/blob/master/keps/sig-release/1729-rebase-images-to-distroless/README.md
+The Google Distroless containers provide a simple, secure, and scalable way to run Docker containers. The Distroless image
+is a small base image and contains no executables or shell other than the Actions Runner Manager and its dependencies.
+As such, it is ultra secure as it contains no extraneous dependencies requiring being kept up to date and potentially exposing
+the application API's to outside vulnerabilities.
+
+The major caveat of the Distroless container is that it contains no shell making it more secure, but as such, it cannot 
+be exec'ed into. If you require a shell, you must modify the Dockerfile to use a different base image for the final container.
+
+You can read up on the Google Distroless base image at the links below:
+
+- [Google Documentation](https://github.com/GoogleContainerTools/distroless)
+- [Why Kubernetes Switched to Distroless](https://github.com/kubernetes/enhancements/blob/master/keps/sig-release/1729-rebase-images-to-distroless/README.md)
