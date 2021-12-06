@@ -15,7 +15,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
-      - name: Set output
+      - name: Create Binaries
+        run: make release
+      - name: Parse Tag
         id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Release
