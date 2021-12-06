@@ -30,7 +30,7 @@ purges the username of the authenticated user.
 **Note**: While the Actions Runner Manager API's make secure, limited use of the users object, and does not call any
 other API endpoints while authenticated as the user, users should be sensitive to the fact that the Users API returns
 private Personally Identifiable Information (PII) such as email addresses. As such, we recommend users use bot accounts
-tightly scoped to only the Teams and Repos they need access to in order to limit risk and exposure.
+tightly scoped to only the Teams they need access to in order to limit risk and exposure.
 
 
 ### Rate Limiting
