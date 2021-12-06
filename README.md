@@ -2,7 +2,7 @@
 
 [![Merge Tests](https://github.com/lindluni/actions-runner-manager/actions/workflows/merge.yml/badge.svg)](https://github.com/lindluni/actions-runner-manager/actions/workflows/merge.yml)
 
-### Notice: Actions Runner Manager does not currently support GitHub Enterprise.
+### Notice: Actions Runner Manager does not currently support GitHub Enterprise Server.
 
 Actions Runner Manager is a GitHub Application that can be used by users who are not organization owners to manage
 GitHub Actions Organization Runner Groups. Actions Runner Manager implements RBAC policies built on top of GitHub 
