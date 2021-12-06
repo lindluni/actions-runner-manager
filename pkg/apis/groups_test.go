@@ -26,11 +26,11 @@ func TestDoGroupCreate_Success(t *testing.T) {
 	manager := &Manager{
 		ActionsClient: actionsClient,
 		Config:        &Config{},
-		CreateMaintainershipClient: func(string, string) (*MaintainershipClient, error) {
+		CreateMaintainershipClient: func(string, string) (*MaintainershipClient, *github.User, error) {
 			return &MaintainershipClient{
 				TeamsClient: teamsClient,
 				UsersClient: usersClient,
-			}, nil
+			}, nil, nil
 		},
 		Logger: logger,
 	}
@@ -67,7 +67,6 @@ func TestDoGroupCreate_Success(t *testing.T) {
 	err = json.Unmarshal(body, &groupAddResponse)
 	require.NoError(t, err)
 	require.Equal(t, expected, groupAddResponse)
-	require.Equal(t, actionsClient.CreateOrganizationRunnerGroupCallCount(), 1)
-	require.Equal(t, teamsClient.GetTeamMembershipBySlugCallCount(), 1)
-	require.Equal(t, usersClient.GetCallCount(), 1)
+	require.Equal(t, 1, actionsClient.CreateOrganizationRunnerGroupCallCount())
+	require.Equal(t, 1, teamsClient.GetTeamMembershipBySlugCallCount())
 }

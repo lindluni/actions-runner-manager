@@ -112,11 +112,11 @@ func TestVerifyMaintainership_Success(t *testing.T) {
 	manager := &Manager{
 		ActionsClient: actionsClient,
 		Config:        &Config{},
-		CreateMaintainershipClient: func(string, string) (*MaintainershipClient, error) {
+		CreateMaintainershipClient: func(string, string) (*MaintainershipClient, *github.User, error) {
 			return &MaintainershipClient{
 				TeamsClient: teamsClient,
 				UsersClient: usersClient,
-			}, nil
+			}, nil, nil
 		},
 		Logger: logger,
 	}

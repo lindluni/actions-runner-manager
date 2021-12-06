@@ -90,7 +90,7 @@ type Manager struct {
 	Config *Config
 	Logger *logrus.Logger
 
-	CreateMaintainershipClient func(string, string) (*MaintainershipClient, error)
+	CreateMaintainershipClient func(string, string) (*MaintainershipClient, *github.User, error)
 }
 
 type MaintainershipClient struct {
@@ -161,22 +161,14 @@ func LimitHandler(lmt *limiter.Limiter) gin.HandlerFunc {
 
 func (m *Manager) verifyMaintainership(token, team, uuid string) (bool, error) {
 	m.Logger.WithField("uuid", uuid)
-	client, err := m.CreateMaintainershipClient(token, uuid)
+	client, user, err := m.CreateMaintainershipClient(token, uuid)
 	if err != nil {
 		return false, fmt.Errorf("failed retrieving user client: %w", err)
 	}
 	m.Logger.WithField("uuid", uuid)
 
-	m.Logger.WithField("uuid", uuid).Info("Retrieving authorized user metadata")
-	ctx := context.Background()
-	user, _, err := client.UsersClient.Get(ctx, "")
-	if err != nil {
-		return false, fmt.Errorf("failed retrieving authenticated users data")
-	}
 	m.Logger.WithField("uuid", uuid)
-
-	m.Logger.WithField("uuid", uuid)
-	membership, resp, err := client.TeamsClient.GetTeamMembershipBySlug(ctx, m.Config.Org, team, user.GetLogin())
+	membership, resp, err := client.TeamsClient.GetTeamMembershipBySlug(context.Background(), m.Config.Org, team, user.GetLogin())
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return false, fmt.Errorf("unable to locate team %s", team)

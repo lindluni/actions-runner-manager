@@ -68,7 +68,7 @@ func initializeManager(t *testing.T) (*apis.Manager, []byte) {
 	lmt.SetMessage(`{"code":429,"response":"You have reached maximum request limit. Please try again in a few seconds."}`)
 	lmt.SetMessageContentType("application/json")
 
-	createClient := func(token, uuid string) (*apis.MaintainershipClient, error) {
+	createClient := func(token, uuid string) (*apis.MaintainershipClient, *github.User, error) {
 		ctx := context.Background()
 		ts := oauth2.StaticTokenSource(
 			&oauth2.Token{AccessToken: token},
@@ -82,7 +82,7 @@ func initializeManager(t *testing.T) (*apis.Manager, []byte) {
 		return &apis.MaintainershipClient{
 			TeamsClient: client.Teams,
 			UsersClient: client.Users,
-		}, nil
+		}, user, nil
 	}
 
 	router := gin.New()
@@ -179,7 +179,6 @@ func TestE2E(t *testing.T) {
 			require.NoError(t, err)
 		}
 	}()
-
 	expected := &Response{
 		Code:     http.StatusOK,
 		Response: fmt.Sprintf("Runner group created successfully: %s", slug),
