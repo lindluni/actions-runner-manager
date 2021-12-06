@@ -5,7 +5,7 @@
 ### Notice: Actions Runner Manager does not currently support GitHub Enterprise Server
 
 Actions Runner Manager is a GitHub Application that can be used by users who are not organization owners to manage
-GitHub Actions Organization Runner Groups. Actions Runner Manager implements RBAC policies built on top of GitHub 
+GitHub Actions Organization Runner Groups. Actions Runner Manager implements pseudo-RBAC policies built on top of GitHub 
 Teams and exposes a set of authenticated API's to grant access to the GitHub Organization Self-Hosted Runner REST API's.
 
 ### Authorization
