@@ -15,9 +15,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+      - name: Set output
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: ${{ !startsWith(github.ref, 'refs') }}
         with:
           files: dist/actions-runner-manager
           generate_release_notes: true
+          name: ${{ steps.vars.outputs.tag }}
+          tag_name: ${{ steps.vars.outputs.tag }}
