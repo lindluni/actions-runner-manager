@@ -144,7 +144,7 @@ func configureOrg(t *testing.T, slug string, client *github.Client, manager *api
 	require.Equal(t, http.StatusNoContent, resp.StatusCode)
 
 	// TODO: Replace with `/ping` endpoint
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 10)
 }
 
 func TestE2E(t *testing.T) {
