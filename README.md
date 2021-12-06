@@ -111,7 +111,10 @@ Download the current binary from: https://github.com/lindluni/actions-runner-man
 
 or
 
-Build the current binary using the Go toolchain: `go install github.com/lindluni/actions-runner-manager/pkg`
+Build the current binary using the Go toolchain: 
+```shell
+    go install github.com/lindluni/actions-runner-manager/pkg
+```
 
 Then create a config file according to the documentation above, then run the binary with the following command:
 ```shell
