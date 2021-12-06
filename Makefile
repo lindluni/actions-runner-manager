@@ -45,6 +45,7 @@ release:
 
 .PHONY: swagger
 swagger:
+	swag fmt --dir pkg
 	swag init --parseDependency --parseInternal --parseDepth 1 --dir pkg
 
 .PHONY: tests

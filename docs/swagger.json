@@ -17,7 +17,7 @@
     "host": "hostname",
     "basePath": "/api/v1",
     "paths": {
-        "/groups-create/{team}": {
+        "/groups-create": {
             "get": {
                 "security": [
                     {
@@ -66,7 +66,7 @@
                 }
             }
         },
-        "/groups-delete/{team}": {
+        "/groups-delete": {
             "get": {
                 "security": [
                     {
@@ -115,7 +115,7 @@
                 }
             }
         },
-        "/groups-list/{team}": {
+        "/groups-list": {
             "get": {
                 "security": [
                     {
@@ -164,7 +164,7 @@
                 }
             }
         },
-        "/repos-add/{team}:{repos}": {
+        "/repos-add": {
             "get": {
                 "security": [
                     {
@@ -223,7 +223,7 @@
                 }
             }
         },
-        "/repos-remove/{team}:{repos}": {
+        "/repos-remove": {
             "get": {
                 "security": [
                     {
@@ -282,7 +282,7 @@
                 }
             }
         },
-        "/repos-set/{team}:{repos}": {
+        "/repos-set": {
             "get": {
                 "security": [
                     {
@@ -341,7 +341,7 @@
                 }
             }
         },
-        "/token-register/{team}": {
+        "/token-register": {
             "get": {
                 "security": [
                     {
@@ -390,7 +390,7 @@
                 }
             }
         },
-        "/token-remove/{team}": {
+        "/token-remove": {
             "get": {
                 "security": [
                     {

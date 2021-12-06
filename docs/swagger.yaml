@@ -42,7 +42,7 @@ info:
   title: Action Runner Manager API
   version: 0.1.0
 paths:
-  /groups-create/{team}:
+  /groups-create:
     get:
       description: Creates a new GitHub Action organization runner group named with
         the team slug
@@ -71,7 +71,7 @@ paths:
       summary: Create a new GitHub Action organization Runner Group
       tags:
       - Groups
-  /groups-delete/{team}:
+  /groups-delete:
     get:
       description: Deletes an existing GitHub Action organization runner group named
         with the team slug
@@ -100,7 +100,7 @@ paths:
       summary: Deletes an existing GitHub Action organization Runner Group
       tags:
       - Groups
-  /groups-list/{team}:
+  /groups-list:
     get:
       description: List all repositories and runners assigned to a GitHub Action organization
         runner group named with the team slug
@@ -130,7 +130,7 @@ paths:
         Group
       tags:
       - Groups
-  /repos-add/{team}:{repos}:
+  /repos-add:
     get:
       description: Adds new repositories to an existing GitHub Actions organization
         named with the team slug
@@ -167,7 +167,7 @@ paths:
         group
       tags:
       - Repos
-  /repos-remove/{team}:{repos}:
+  /repos-remove:
     get:
       description: Removes existing repositories to an existing GitHub Actions organization
         named with the team slug
@@ -204,7 +204,7 @@ paths:
         runner group
       tags:
       - Repos
-  /repos-set/{team}:{repos}:
+  /repos-set:
     get:
       description: Replaces all existing repositories in an existing GitHub Actions
         organization named with the team slug with a new set of repositories
@@ -241,7 +241,7 @@ paths:
         runner group with a new set of repositories
       tags:
       - Repos
-  /token-register/{team}:
+  /token-register:
     get:
       description: Creates a new GitHub Action organization runner removal token that
         can be used to configure GitHub Action runners at the organization level
@@ -270,7 +270,7 @@ paths:
       summary: Create a new GitHub Action organization runner registration token
       tags:
       - Tokens
-  /token-remove/{team}:
+  /token-remove:
     get:
       description: Creates a new GitHub Action organization runner removal token that
         can be used remove a GitHub Action runners at the organization level

@@ -31,7 +31,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/groups-create/{team}": {
+        "/groups-create": {
             "get": {
                 "security": [
                     {
@@ -80,7 +80,7 @@ var doc = `{
                 }
             }
         },
-        "/groups-delete/{team}": {
+        "/groups-delete": {
             "get": {
                 "security": [
                     {
@@ -129,7 +129,7 @@ var doc = `{
                 }
             }
         },
-        "/groups-list/{team}": {
+        "/groups-list": {
             "get": {
                 "security": [
                     {
@@ -178,7 +178,7 @@ var doc = `{
                 }
             }
         },
-        "/repos-add/{team}:{repos}": {
+        "/repos-add": {
             "get": {
                 "security": [
                     {
@@ -237,7 +237,7 @@ var doc = `{
                 }
             }
         },
-        "/repos-remove/{team}:{repos}": {
+        "/repos-remove": {
             "get": {
                 "security": [
                     {
@@ -296,7 +296,7 @@ var doc = `{
                 }
             }
         },
-        "/repos-set/{team}:{repos}": {
+        "/repos-set": {
             "get": {
                 "security": [
                     {
@@ -355,7 +355,7 @@ var doc = `{
                 }
             }
         },
-        "/token-register/{team}": {
+        "/token-register": {
             "get": {
                 "security": [
                     {
@@ -404,7 +404,7 @@ var doc = `{
                 }
             }
         },
-        "/token-remove/{team}": {
+        "/token-remove": {
             "get": {
                 "security": [
                     {
