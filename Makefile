@@ -16,7 +16,7 @@ go.fqp.swag   		 := github.com/swaggo/swag/cmd/swag
 
 .PHONY: clean
 clean:
-	rm -rf c.out
+	rm -rf c.out dist
 
 .PHONY: docker
 docker:
@@ -38,6 +38,10 @@ mocks: tools
 profile:
 	go test -coverprofile=c.out ./pkg/...
 	go tool cover -html=c.out
+
+.PHONY: release
+release:
+	go build -o dist/actions-runner-manager ./pkg
 
 .PHONY: swagger
 swagger:
