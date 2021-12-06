@@ -46,7 +46,6 @@ release:
 .PHONY: swagger
 swagger:
 	swag init --parseDependency --parseInternal --parseDepth 1 --dir pkg
-	swagger generate markdown -f docs/swagger.yaml --output docs/index.md
 
 .PHONY: tests
 tests: unit-tests integration-tests
