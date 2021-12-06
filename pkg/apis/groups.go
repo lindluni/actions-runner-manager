@@ -36,7 +36,7 @@ type JSONResultError struct {
 // @Produce      json
 // @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
 // @Success      200   {object}  JSONResultSuccess{Code=int,Response=string}
-// @Router       /groups-create/{team} [get]
+// @Router       /groups-create [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupCreate(c *gin.Context) {
 	uuid := requestid.Get(c)
@@ -117,7 +117,7 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 // @Produce      json
 // @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
 // @Success      200   {object}  JSONResultSuccess{Code=int,Response=string}
-// @Router       /groups-delete/{team} [get]
+// @Router       /groups-delete [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupDelete(c *gin.Context) {
 	uuid := requestid.Get(c)
@@ -198,7 +198,7 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 // @Produce      json
 // @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
 // @Success      200   {object}  JSONResultSuccess{Code=int,Response=listResponse}
-// @Router       /groups-list/{team} [get]
+// @Router       /groups-list [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupList(c *gin.Context) {
 	uuid := requestid.Get(c)

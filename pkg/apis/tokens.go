@@ -20,7 +20,7 @@ import (
 // @Produce      json
 // @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
 // @Success      200   {object}  JSONResultSuccess{Code=int,Response=github.RegistrationToken}
-// @Router       /token-register/{team} [get]
+// @Router       /token-register [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoTokenRegister(c *gin.Context) {
 	uuid := requestid.Get(c)
@@ -90,7 +90,7 @@ func (m *Manager) DoTokenRegister(c *gin.Context) {
 // @Produce      json
 // @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
 // @Success      200   {object}  JSONResultSuccess{Code=int,Response=github.RegistrationToken}
-// @Router       /token-remove/{team} [get]
+// @Router       /token-remove [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoTokenRemove(c *gin.Context) {
 	uuid := requestid.Get(c)
