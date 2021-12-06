@@ -8,6 +8,13 @@
     <body>
     <div id="swagger-ui"></div> <!-- Div to hold the UI component -->
         <script>
+            const DisableAuthorizePlugin = function() {
+                return {
+                    wrapComponents: {
+                        authorizeBtn: () => () => null
+                    }
+                }
+            }
             window.onload = function () {
                 // Begin Swagger UI call region
                 window.ui = SwaggerUIBundle({
@@ -19,6 +26,7 @@
                         SwaggerUIBundle.SwaggerUIStandalonePreset
                     ],
                     plugins: [
+                        DisableAuthorizePlugin,
                         SwaggerUIBundle.plugins.DownloadUrl
                     ],
                     supportedSubmitMethods: [],
