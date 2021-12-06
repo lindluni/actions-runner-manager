@@ -168,7 +168,7 @@ Actions Runner Manager implements the following API's:
 
 #### `/api/v1/group-add`
 
-- Create a new GitHub Actions Organization Runner Group
+- Create a new GitHub Actions Organization Runner Group with the name in the `team` parameter
 
 ```shell
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-add?team=<team_slug>"
@@ -178,7 +178,7 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-add?team=<t
 
 #### `/api/v1/group-delete`
 
-- Delete an existing GitHub Actions Organization Runner Group
+- Delete an existing GitHub Actions Organization Runner Group with the name in the `team` parameter
 
 ```shell
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-delete?team=<team_slug>"
@@ -188,7 +188,7 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-delete?team
 
 #### `/api/v1/group-list`
 
-- List all the runners and repositories assigned to a GitHub Actions Organization Runner Group
+- List all the runners and repositories assigned to a GitHub Actions Organization Runner Group with the name in the `team` parameter
 
 ```shell
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-list?team=<team_slug>"
@@ -198,7 +198,7 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-list?team=<
 
 #### `/api/v1/repos-add`
 
-- Add one or more repositories to an existing GitHub Actions Organization Runner Group
+- Add one or more repositories to an existing GitHub Actions Organization Runner Group with the name in the `team` parameter
 
 ```shell
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-add?team=<team_slug>&repos=<repo1>,<repo2>,<repo3>"
@@ -208,7 +208,7 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-add?team=<t
 
 #### `/api/v1/repos-remove`
 
-- Remove one or more repositories from an existing GitHub Actions Organization Runner Group
+- Remove one or more repositories from an existing GitHub Actions Organization Runner Group with the name in the `team` parameter
 
 ```shell
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-remove?team=<team_slug>&repos=<repo1>,<repo2>,<repo3>"
@@ -218,7 +218,7 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-remove?team
 
 #### `/api/v1/repos-set`
 
-- Replace all existing repositories assigned to an existing GitHub Actions Runner Group with one or more new repositories
+- Replace all existing repositories assigned to an existing GitHub Actions Runner Group with the name in the `team` parameter with one or more new repositories
 
 ```shell
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-set?team=<team_slug>&repos=<repo1>,<repo2>,<repo3>"
@@ -228,7 +228,7 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-set?team=<t
 
 #### `/api/v1/token-register`
 
-- Create a new Registration Token to be used during runner configuration to register a runner to an existing GitHub Actions Organization Runner Group
+- Create a new Registration Token to be used during runner configuration to register a runner to an existing GitHub Actions Organization Runner Group with the name in the `team` parameter
 
 ```shell
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/token-register?team=<team_slug>"
@@ -238,7 +238,7 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/token-register?te
 
 #### `/api/v1/token-remove`
 
-- Create a new Removal Token to be used during runner de-provisioning to remove a runner from an existing GitHub Actions Organization Runner Group
+- Create a new Removal Token to be used during runner de-provisioning to remove a runner from an existing GitHub Actions Organization Runner Group with the name in the `team` parameter
 
 ```shell
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/token-remove?team=<team_slug>"
