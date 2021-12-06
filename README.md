@@ -159,7 +159,9 @@ You can find detailed API documentation on our [GitHub Page](https://lindluni.gi
 
 Actions Runner Manager implements the following API's:
 
-### `/api/v1/group-add`
+---
+
+#### `/api/v1/group-add`
 
 - Create a new GitHub Actions Organization Runner Group
 
@@ -167,7 +169,9 @@ Actions Runner Manager implements the following API's:
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-add?team=<team_slug>"
 ```
 
-### `/api/v1/group-delete`
+---
+
+#### `/api/v1/group-delete`
 
 - Delete an existing GitHub Actions Organization Runner Group
 
@@ -175,7 +179,9 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-add?team=<t
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-delete?team=<team_slug>"
 ```
 
-### `/api/v1/group-list`
+---
+
+#### `/api/v1/group-list`
 
 - List all the runners and repositories assigned to a GitHub Actions Organization Runner Group
 
@@ -183,7 +189,9 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-delete?team
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-list?team=<team_slug>"
 ```
 
-### `/api/v1/repos-add`
+---
+
+#### `/api/v1/repos-add`
 
 - Add one or more repositories to an existing GitHub Actions Organization Runner Group
 
@@ -191,7 +199,9 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/group-list?team=<
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-add?team=<team_slug>&repos=<repo1>,<repo2>,<repo3>"
 ```
 
-### `/api/v1/repos-remove`
+---
+
+#### `/api/v1/repos-remove`
 
 - Remove one or more repositories from an existing GitHub Actions Organization Runner Group
 
@@ -199,7 +209,9 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-add?team=<t
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-remove?team=<team_slug>&repos=<repo1>,<repo2>,<repo3>"
 ```
 
-### `/api/v1/repos-set`
+---
+
+#### `/api/v1/repos-set`
 
 - Replace all existing repositories assigned to an existing GitHub Actions Runner Group with one or more new repositories
 
@@ -207,7 +219,9 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-remove?team
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-set?team=<team_slug>&repos=<repo1>,<repo2>,<repo3>"
 ```
 
-### `/api/v1/token-register`
+---
+
+#### `/api/v1/token-register`
 
 - Create a new Registration Token to be used during runner configuration to register a runner to an existing GitHub Actions Organization Runner Group
 
@@ -215,7 +229,9 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/repos-set?team=<t
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/token-register?team=<team_slug>"
 ```
 
-### `/api/v1/token-remove`
+---
+
+#### `/api/v1/token-remove`
 
 - Create a new Removal Token to be used during runner de-provisioning to remove a runner from an existing GitHub Actions Organization Runner Group
 
