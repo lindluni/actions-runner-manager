@@ -34,8 +34,8 @@ type JSONResultError struct {
 // @Description  Creates a new GitHub Action organization runner group named with the team slug
 // @Tags         Groups
 // @Produce      json
-// @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
-// @Success      200    {object}  JSONResultSuccess{Code=int,Response=string}
+// @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
+// @Success      200   {object}  JSONResultSuccess{Code=int,Response=string}
 // @Router       /groups-create/{team} [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupCreate(c *gin.Context) {
@@ -115,8 +115,8 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 // @Description  Deletes an existing GitHub Action organization runner group named with the team slug
 // @Tags         Groups
 // @Produce      json
-// @Param        team   path      string  true  "Canonical **slug** of the GitHub team"
-// @Success      200    {object}  JSONResultSuccess{Code=int,Response=string}
+// @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
+// @Success      200   {object}  JSONResultSuccess{Code=int,Response=string}
 // @Router       /groups-delete/{team} [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupDelete(c *gin.Context) {
@@ -196,8 +196,8 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 // @Description  List all repositories and runners assigned to a GitHub Action organization runner group named with the team slug
 // @Tags         Groups
 // @Produce      json
-// @Param        team    path      string    true  "Canonical **slug** of the GitHub team"
-// @Success      200    {object}  JSONResultSuccess{Code=int,Response=listResponse}
+// @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
+// @Success      200   {object}  JSONResultSuccess{Code=int,Response=listResponse}
 // @Router       /groups-list/{team} [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupList(c *gin.Context) {
