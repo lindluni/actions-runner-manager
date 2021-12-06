@@ -4,8 +4,8 @@
 name: Publish Container
 on:
   release:
-   types:
-    - published
+    types:
+      - created
 permissions:
   contents: read
   packages: write
