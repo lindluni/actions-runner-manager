@@ -244,6 +244,16 @@ curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/token-register?te
 curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/token-remove?team=<team_slug>"
 ```
 
+---
+
+#### `/api/v1/status`
+
+- Checks the readiness status of the server
+
+```shell
+curl -H "Authorization: <token>" "https://<host>:<port>/api/v1/status"
+```
+
 ## Why Distroless?
 
 The Google Distroless containers provide a simple, secure, and scalable way to run Docker containers. The Distroless image
