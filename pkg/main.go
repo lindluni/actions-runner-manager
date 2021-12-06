@@ -2,11 +2,6 @@
 SPDX-License-Identifier: Apache-2.0
 */
 
-// TODO: Ensure all http error response paths return at the end and dont unintentionally continue
-// TODO: Move secrets to environment to protect them and add approvers for PR's to protect test org.
-// TODO: Implement a ping and healthz? endpoint
-// TODO: Support GitHub Enterprise by adding config option to specify API endpoint and create a client that can interact with the API
-
 package main
 
 import (
