@@ -125,7 +125,7 @@ Build the current binary using the Go toolchain:
 
 Then create a config file according to the documentation above, then run the binary with the following command:
 ```shell
-    ./actions-runner-manager
+    actions-runner-manager
 ```
 
 It is recommended you use a Service Manager such as systemd to ensure the server is running.
