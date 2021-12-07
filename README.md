@@ -261,7 +261,7 @@ is a small base image and contains no executables or shell other than the Action
 As such, it is ultra secure as it contains no extraneous dependencies requiring being kept up to date and potentially exposing
 the application API's to outside vulnerabilities.
 
-The major caveat of the Distroless container is that it contains no shell making it more secure, but as such, it cannot 
+The major caveat of the Distroless container is that it contains no shell, thus making it more secure, but as such, it cannot 
 be exec'ed into. If you require a shell, you must modify the Dockerfile to use a different base image for the final container.
 
 You can read up on the Google Distroless base image at the links below:
