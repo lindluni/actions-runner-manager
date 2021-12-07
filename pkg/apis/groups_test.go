@@ -19,6 +19,8 @@ import (
 )
 
 func TestDoGroupCreate_Success(t *testing.T) {
+	t.Parallel()
+
 	actionsClient := &mocks.ActionsClient{}
 	teamsClient := &mocks.TeamsClient{}
 	usersClient := &mocks.UsersClient{}

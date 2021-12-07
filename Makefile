@@ -56,7 +56,7 @@ tools: $(patsubst %,$(GOTOOLS_BINDIR)/%, $(GOTOOLS))
 
 .PHONY: unit-tests
 unit-tests:
-	go test -cover ./pkg/...
+	go test -p 4 -cover ./pkg/...
 
 gotool.%:
 	$(eval TOOL = ${subst gotool.,,${@}})
