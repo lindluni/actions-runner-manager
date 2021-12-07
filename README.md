@@ -105,6 +105,9 @@ server:
     cat <private_key_file> | base64
 ```
 
+**Warning**: Because users are expected to pass their Authorization tokens in the Authorization header, you should never
+run the Actions Runner Manager in production with TLS disabled.
+
 ## Running the Server
 
 **Security Notice**: Actions Runner Manager should never run in non-TLS mode when in production. Users should configure
