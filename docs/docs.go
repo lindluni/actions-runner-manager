@@ -32,7 +32,7 @@ var doc = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/groups-create": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -81,7 +81,7 @@ var doc = `{
             }
         },
         "/groups-delete": {
-            "get": {
+            "delete": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -179,7 +179,7 @@ var doc = `{
             }
         },
         "/repos-add": {
-            "get": {
+            "patch": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -238,7 +238,7 @@ var doc = `{
             }
         },
         "/repos-remove": {
-            "get": {
+            "patch": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -297,7 +297,7 @@ var doc = `{
             }
         },
         "/repos-set": {
-            "get": {
+            "patch": {
                 "security": [
                     {
                         "ApiKeyAuth": []

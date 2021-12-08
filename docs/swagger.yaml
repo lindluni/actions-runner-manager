@@ -43,7 +43,7 @@ info:
   version: 0.1.0
 paths:
   /groups-create:
-    get:
+    post:
       description: Creates a new GitHub Action organization runner group named with
         the team slug
       parameters:
@@ -72,7 +72,7 @@ paths:
       tags:
       - Groups
   /groups-delete:
-    get:
+    delete:
       description: Deletes an existing GitHub Action organization runner group named
         with the team slug
       parameters:
@@ -131,7 +131,7 @@ paths:
       tags:
       - Groups
   /repos-add:
-    get:
+    patch:
       description: Adds new repositories to an existing GitHub Actions organization
         named with the team slug
       parameters:
@@ -168,7 +168,7 @@ paths:
       tags:
       - Repos
   /repos-remove:
-    get:
+    patch:
       description: Removes existing repositories to an existing GitHub Actions organization
         named with the team slug
       parameters:
@@ -205,7 +205,7 @@ paths:
       tags:
       - Repos
   /repos-set:
-    get:
+    patch:
       description: Replaces all existing repositories in an existing GitHub Actions
         organization named with the team slug with a new set of repositories
       parameters:

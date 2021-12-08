@@ -18,7 +18,7 @@
     "basePath": "/api/v1",
     "paths": {
         "/groups-create": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -67,7 +67,7 @@
             }
         },
         "/groups-delete": {
-            "get": {
+            "delete": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -165,7 +165,7 @@
             }
         },
         "/repos-add": {
-            "get": {
+            "patch": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -224,7 +224,7 @@
             }
         },
         "/repos-remove": {
-            "get": {
+            "patch": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -283,7 +283,7 @@
             }
         },
         "/repos-set": {
-            "get": {
+            "patch": {
                 "security": [
                     {
                         "ApiKeyAuth": []

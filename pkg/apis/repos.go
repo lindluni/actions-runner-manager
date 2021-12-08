@@ -23,7 +23,7 @@ import (
 // @Param        team   path      string    true  "Canonical **slug** of the GitHub team"
 // @Param        repos  path      []string  true  "Comma-seperated list of repository slugs"
 // @Success      200    {object}  JSONResultSuccess{Code=int,Response=string}
-// @Router       /repos-add [get]
+// @Router       /repos-add [patch]
 // @Security     ApiKeyAuth
 func (m *Manager) DoReposAdd(c *gin.Context) {
 	uuid := requestid.Get(c)
@@ -156,7 +156,7 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 // @Param        team   path      string    true  "Canonical **slug** of the GitHub team"
 // @Param        repos  path      []string  true  "Comma-seperated list of repository slugs"
 // @Success      200    {object}  JSONResultSuccess{Code=int,Response=string}
-// @Router       /repos-remove [get]
+// @Router       /repos-remove [patch]
 // @Security     ApiKeyAuth
 func (m *Manager) DoReposRemove(c *gin.Context) {
 	uuid := requestid.Get(c)
@@ -275,7 +275,7 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 // @Param        team   path      string    true  "Canonical **slug** of the GitHub team"
 // @Param        repos  path      []string  true  "Comma-seperated list of repository slugs"
 // @Success      200    {object}  JSONResultSuccess{Code=int,Response=string}
-// @Router       /repos-set [get]
+// @Router       /repos-set [patch]
 // @Security     ApiKeyAuth
 func (m *Manager) DoReposSet(c *gin.Context) {
 	uuid := requestid.Get(c)
