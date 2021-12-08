@@ -99,14 +99,11 @@ server:
     keyFile: "<Path to TLS key file>"
 ```
 
-**Note**: You can encode your private into Base64 by using the following command after downloading it from the GitHub UI:
+**Note**: You can encode your private key into Base64 by using the following command after downloading it from the GitHub UI:
 
 ```shell
     cat <private_key_file> | base64
 ```
-
-**Warning**: Because users are expected to pass their Authorization tokens in the Authorization header, you should never
-run the Actions Runner Manager in production with TLS disabled.
 
 ## Running the Server
 
