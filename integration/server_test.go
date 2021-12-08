@@ -205,7 +205,7 @@ func TestE2E(t *testing.T) {
 		Response: fmt.Sprintf("Runner group created successfully: %s", slug),
 	}
 	url = fmt.Sprintf("http://%s/api/v1/group-create?team=%s", manager.Server.Addr, slug)
-	response := doGet(t, url)
+	response := do(t, http.MethodPost, url)
 	require.Equal(t, expected, response)
 
 	expected = &Response{
@@ -213,7 +213,7 @@ func TestE2E(t *testing.T) {
 		Response: "Successfully added repositories to runner group",
 	}
 	url = fmt.Sprintf("http://%s/api/v1/repos-add?team=%s&repos=%s", manager.Server.Addr, slug, slug)
-	response = doGet(t, url)
+	response = do(t, http.MethodPatch, url)
 	require.Equal(t, expected, response)
 
 	expected = &Response{
@@ -224,7 +224,7 @@ func TestE2E(t *testing.T) {
 		},
 	}
 	url = fmt.Sprintf("http://%s/api/v1/group-list?team=%s", manager.Server.Addr, slug)
-	response = doGet(t, url)
+	response = do(t, http.MethodGet, url)
 	require.Equal(t, expected, response)
 
 	expected = &Response{
@@ -232,7 +232,7 @@ func TestE2E(t *testing.T) {
 		Response: "Successfully removed repositories from runner group",
 	}
 	url = fmt.Sprintf("http://%s/api/v1/repos-remove?team=%s&repos=%s", manager.Server.Addr, slug, slug)
-	response = doGet(t, url)
+	response = do(t, http.MethodPatch, url)
 	require.Equal(t, expected, response)
 
 	expected = &Response{
@@ -240,7 +240,7 @@ func TestE2E(t *testing.T) {
 		Response: "Successfully added repositories to runner group",
 	}
 	url = fmt.Sprintf("http://%s/api/v1/repos-set?team=%s&repos=%s", manager.Server.Addr, slug, slug)
-	response = doGet(t, url)
+	response = do(t, http.MethodPatch, url)
 	require.Equal(t, expected, response)
 
 	expected = &Response{
@@ -248,26 +248,26 @@ func TestE2E(t *testing.T) {
 		Response: fmt.Sprintf("Runner group deleted successfully: %s", slug),
 	}
 	url = fmt.Sprintf("http://%s/api/v1/group-delete?team=%s", manager.Server.Addr, slug)
-	response = doGet(t, url)
+	response = do(t, http.MethodDelete, url)
 	require.Equal(t, expected, response)
 
 	url = fmt.Sprintf("http://%s/api/v1/token-register?team=%s", manager.Server.Addr, slug)
-	response = doGet(t, url)
+	response = do(t, http.MethodGet, url)
 	require.Equal(t, http.StatusOK, response.Code)
 	tokenMap := response.Response.(map[string]interface{})
 	require.NotEmpty(t, tokenMap["token"])
 	require.NotEmpty(t, tokenMap["expires_at"])
 
 	url = fmt.Sprintf("http://%s/api/v1/token-remove?team=%s", manager.Server.Addr, slug)
-	response = doGet(t, url)
+	response = do(t, http.MethodGet, url)
 	require.Equal(t, http.StatusOK, response.Code)
 	tokenMap = response.Response.(map[string]interface{})
 	require.NotEmpty(t, tokenMap["token"])
 	require.NotEmpty(t, tokenMap["expires_at"])
 }
 
-func doGet(t *testing.T, url string) *Response {
-	req, err := http.NewRequest("GET", url, nil)
+func do(t *testing.T, method, url string) *Response {
+	req, err := http.NewRequest(method, url, nil)
 	require.NoError(t, err)
 
 	client := &http.Client{}

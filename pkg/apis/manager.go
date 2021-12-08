@@ -140,12 +140,12 @@ func (m *Manager) Serve() {
 func (m *Manager) SetRoutes() {
 	v1 := m.Router.Group("/api/v1")
 	{
-		v1.GET("/group-create", LimitHandler(m.Limit), m.DoGroupCreate)
-		v1.GET("/group-delete", LimitHandler(m.Limit), m.DoGroupDelete)
+		v1.POST("/group-create", LimitHandler(m.Limit), m.DoGroupCreate)
+		v1.DELETE("/group-delete", LimitHandler(m.Limit), m.DoGroupDelete)
 		v1.GET("/group-list", LimitHandler(m.Limit), m.DoGroupList)
-		v1.GET("/repos-add", LimitHandler(m.Limit), m.DoReposAdd)
-		v1.GET("/repos-remove", LimitHandler(m.Limit), m.DoReposRemove)
-		v1.GET("/repos-set", LimitHandler(m.Limit), m.DoReposSet)
+		v1.PATCH("/repos-add", LimitHandler(m.Limit), m.DoReposAdd)
+		v1.PATCH("/repos-remove", LimitHandler(m.Limit), m.DoReposRemove)
+		v1.PATCH("/repos-set", LimitHandler(m.Limit), m.DoReposSet)
 		v1.GET("/token-register", LimitHandler(m.Limit), m.DoTokenRegister)
 		v1.GET("/token-remove", LimitHandler(m.Limit), m.DoTokenRemove)
 		v1.GET("/status", LimitHandler(m.Limit), m.Status)
