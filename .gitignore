@@ -1,5 +1,8 @@
 *.out
 *.pem
+
+example.sh
+
 dist/
 logs/
 pkg/config.yml

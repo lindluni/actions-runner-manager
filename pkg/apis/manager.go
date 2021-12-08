@@ -14,6 +14,7 @@ import (
 
 	"github.com/didip/tollbooth/v6"
 	"github.com/didip/tollbooth/v6/limiter"
+	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v41/github"
 	"github.com/sirupsen/logrus"
@@ -154,8 +155,23 @@ func (m *Manager) SetRoutes() {
 }
 
 func (m *Manager) Status(c *gin.Context) {
+	uuid := requestid.Get(c)
+
+	m.Logger.WithField("uuid", uuid).Info("Retrieving Authorization header")
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		c.JSON(http.StatusForbidden, &JSONResultError{
+			Code:  http.StatusForbidden,
+			Error: "Missing Authorization header",
+		})
+		return
+	}
+	m.Logger.WithField("uuid", uuid).Debug("Retrieved Authorization header")
+
+	_, _, _ = m.CreateMaintainershipClient(token, uuid)
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Server ready",
+		"Code":     http.StatusOK,
+		"Response": "Server ready",
 	})
 }
 
