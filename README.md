@@ -81,7 +81,6 @@ org: "<GitHub Organization>"
 appID: <GitHub Application ID>
 installationID: <GitHub Application Installation ID>
 privateKey: "<Base64 Encoded GitHub Application Private Key>"
-rateLimit: <Maximum number of authenticated requests a user can make per second>
 logging:
   compress: (true or false) <Compress rotated log files>
   ephemeral: (true or false) <Log to stdout instead of rotating log files>
@@ -93,6 +92,7 @@ logging:
 server:
   address: "<IP Address or Hostname bind interface>"
   port: <Port to bind to>
+  rateLimit: <Maximum number of authenticated requests a user can make per second>
   tls:
     enabled: (true or false) <Enable TLS>
     certFile: "<Path to TLS certificate file>"

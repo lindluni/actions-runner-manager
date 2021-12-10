@@ -31,7 +31,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/groups-create": {
+        "/group-create": {
             "post": {
                 "security": [
                     {
@@ -51,7 +51,14 @@ var doc = `{
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -80,7 +87,7 @@ var doc = `{
                 }
             }
         },
-        "/groups-delete": {
+        "/group-delete": {
             "delete": {
                 "security": [
                     {
@@ -100,7 +107,7 @@ var doc = `{
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -129,7 +136,7 @@ var doc = `{
                 }
             }
         },
-        "/groups-list": {
+        "/group-list": {
             "get": {
                 "security": [
                     {
@@ -149,7 +156,7 @@ var doc = `{
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -198,7 +205,7 @@ var doc = `{
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
@@ -208,7 +215,7 @@ var doc = `{
                         },
                         "description": "Comma-seperated list of repository slugs",
                         "name": "repos",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -257,7 +264,7 @@ var doc = `{
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
@@ -267,7 +274,7 @@ var doc = `{
                         },
                         "description": "Comma-seperated list of repository slugs",
                         "name": "repos",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -316,7 +323,7 @@ var doc = `{
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
@@ -326,7 +333,7 @@ var doc = `{
                         },
                         "description": "Comma-seperated list of repository slugs",
                         "name": "repos",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -375,7 +382,7 @@ var doc = `{
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -424,7 +431,7 @@ var doc = `{
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -522,7 +529,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "0.1.0",
-	Host:        "hostname",
+	Host:        "localhost",
 	BasePath:    "/api/v1",
 	Schemes:     []string{},
 	Title:       "Action Runner Manager API",

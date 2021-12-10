@@ -46,7 +46,7 @@ func init() {
 // @license.name                Apache 2.0
 // @license.url                 http://www.apache.org/licenses/LICENSE-2.0.html
 // @BasePath                    /api/v1
-// @host                        hostname
+// @host                        localhost
 // @securityDefinitions.apikey  APIKeyAuth
 // @in                          header
 // @name                        Authorization
@@ -62,7 +62,7 @@ func main() {
 	logger.Debug("Created GitHub application installation configuration")
 
 	logger.Info("Initializing Rate Limiter")
-	lmt := tollbooth.NewLimiter(config.RateLimit, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
+	lmt := tollbooth.NewLimiter(config.Server.RateLimit, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
 	lmt.SetHeader("Authorization", []string{})
 	lmt.SetHeaderEntryExpirationTTL(time.Hour)
 	lmt.SetMessage(`{"code":429,"response":"You have reached maximum request limit. Please try again in a few seconds."}`)

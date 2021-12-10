@@ -34,14 +34,15 @@ type JSONResultError struct {
 // @Description  Creates a new GitHub Action organization runner group named with the team slug
 // @Tags         Groups
 // @Produce      json
-// @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
-// @Success      200   {object}  JSONResultSuccess{Code=int,Response=string}
-// @Router       /groups-create [post]
+// @Param        team           query     string  true  "Canonical **slug** of the GitHub team"
+// @Param        Authorization  header    string  true  "Authorization token"
+// @Success      200            {object}  JSONResultSuccess{Code=int,Response=string}
+// @Router       /group-create [post]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupCreate(c *gin.Context) {
 	uuid := requestid.Get(c)
 
-	m.Logger.Info(c, "Retrieving team parameter")
+	m.Logger.Info("Retrieving team parameter")
 	team := c.Query("team")
 	if team == "" {
 		c.JSON(http.StatusBadRequest, &JSONResultError{
@@ -53,6 +54,7 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Debug("Retrieved team parameter")
 
 	m.Logger.WithField("uuid", uuid).WithField("team", team).Info("Retrieving Authorization header")
+	fmt.Println(c)
 	token := c.GetHeader("Authorization")
 	if token == "" {
 		c.JSON(http.StatusForbidden, &JSONResultError{
@@ -115,14 +117,14 @@ func (m *Manager) DoGroupCreate(c *gin.Context) {
 // @Description  Deletes an existing GitHub Action organization runner group named with the team slug
 // @Tags         Groups
 // @Produce      json
-// @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
+// @Param        team  query     string  true  "Canonical **slug** of the GitHub team"
 // @Success      200   {object}  JSONResultSuccess{Code=int,Response=string}
-// @Router       /groups-delete [delete]
+// @Router       /group-delete [delete]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupDelete(c *gin.Context) {
 	uuid := requestid.Get(c)
 
-	m.Logger.Info(c, "Retrieving team parameter")
+	m.Logger.Info("Retrieving team parameter")
 	team := c.Query("team")
 	if team == "" {
 		c.JSON(http.StatusBadRequest, &JSONResultError{
@@ -196,14 +198,14 @@ func (m *Manager) DoGroupDelete(c *gin.Context) {
 // @Description  List all repositories and runners assigned to a GitHub Action organization runner group named with the team slug
 // @Tags         Groups
 // @Produce      json
-// @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
+// @Param        team  query     string  true  "Canonical **slug** of the GitHub team"
 // @Success      200   {object}  JSONResultSuccess{Code=int,Response=listResponse}
-// @Router       /groups-list [get]
+// @Router       /group-list [get]
 // @Security     ApiKeyAuth
 func (m *Manager) DoGroupList(c *gin.Context) {
 	uuid := requestid.Get(c)
 
-	m.Logger.Info(c, "Retrieving team parameter")
+	m.Logger.Info("Retrieving team parameter")
 	team := c.Query("team")
 	if team == "" {
 		c.JSON(http.StatusBadRequest, &JSONResultError{

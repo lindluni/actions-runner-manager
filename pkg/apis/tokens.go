@@ -18,7 +18,7 @@ import (
 // @Description  Creates a new GitHub Action organization runner removal token that can be used to configure GitHub Action runners at the organization level
 // @Tags         Tokens
 // @Produce      json
-// @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
+// @Param        team  query     string  true  "Canonical **slug** of the GitHub team"
 // @Success      200   {object}  JSONResultSuccess{Code=int,Response=github.RegistrationToken}
 // @Router       /token-register [get]
 // @Security     ApiKeyAuth
@@ -88,7 +88,7 @@ func (m *Manager) DoTokenRegister(c *gin.Context) {
 // @Description  Creates a new GitHub Action organization runner removal token that can be used remove a GitHub Action runners at the organization level
 // @Tags         Tokens
 // @Produce      json
-// @Param        team  path      string  true  "Canonical **slug** of the GitHub team"
+// @Param        team  query     string  true  "Canonical **slug** of the GitHub team"
 // @Success      200   {object}  JSONResultSuccess{Code=int,Response=github.RegistrationToken}
 // @Router       /token-remove [get]
 // @Security     ApiKeyAuth

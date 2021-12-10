@@ -20,8 +20,8 @@ import (
 // @Description  Adds new repositories to an existing GitHub Actions organization named with the team slug
 // @Tags         Repos
 // @Produce      json
-// @Param        team   path      string    true  "Canonical **slug** of the GitHub team"
-// @Param        repos  path      []string  true  "Comma-seperated list of repository slugs"
+// @Param        team   query     string    true  "Canonical **slug** of the GitHub team"
+// @Param        repos  query     []string  true  "Comma-seperated list of repository slugs"
 // @Success      200    {object}  JSONResultSuccess{Code=int,Response=string}
 // @Router       /repos-add [patch]
 // @Security     ApiKeyAuth
@@ -153,8 +153,8 @@ func (m *Manager) DoReposAdd(c *gin.Context) {
 // @Description  Removes existing repositories to an existing GitHub Actions organization named with the team slug
 // @Tags         Repos
 // @Produce      json
-// @Param        team   path      string    true  "Canonical **slug** of the GitHub team"
-// @Param        repos  path      []string  true  "Comma-seperated list of repository slugs"
+// @Param        team   query     string    true  "Canonical **slug** of the GitHub team"
+// @Param        repos  query     []string  true  "Comma-seperated list of repository slugs"
 // @Success      200    {object}  JSONResultSuccess{Code=int,Response=string}
 // @Router       /repos-remove [patch]
 // @Security     ApiKeyAuth
@@ -272,8 +272,8 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 // @Description  Replaces all existing repositories in an existing GitHub Actions organization named with the team slug with a new set of repositories
 // @Tags         Repos
 // @Produce      json
-// @Param        team   path      string    true  "Canonical **slug** of the GitHub team"
-// @Param        repos  path      []string  true  "Comma-seperated list of repository slugs"
+// @Param        team   query     string    true  "Canonical **slug** of the GitHub team"
+// @Param        repos  query     []string  true  "Comma-seperated list of repository slugs"
 // @Success      200    {object}  JSONResultSuccess{Code=int,Response=string}
 // @Router       /repos-set [patch]
 // @Security     ApiKeyAuth

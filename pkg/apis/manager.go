@@ -57,7 +57,6 @@ type Config struct {
 	AppID          int64   `yaml:"appID"`
 	InstallationID int64   `yaml:"installationID"`
 	PrivateKey     string  `yaml:"privateKey"`
-	RateLimit      float64 `yaml:"rateLimit"`
 	Logging        Logging `yaml:"logging"`
 	Server         Server  `yaml:"server"`
 }
@@ -73,9 +72,10 @@ type Logging struct {
 }
 
 type Server struct {
-	Address string `yaml:"address"`
-	Port    int    `yaml:"port"`
-	TLS     TLS    `yaml:"tls"`
+	Address   string  `yaml:"address"`
+	Port      int     `yaml:"port"`
+	RateLimit float64 `yaml:"rateLimit"`
+	TLS       TLS     `yaml:"tls"`
 }
 
 type TLS struct {

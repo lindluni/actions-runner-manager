@@ -14,10 +14,10 @@
         },
         "version": "0.1.0"
     },
-    "host": "hostname",
+    "host": "localhost",
     "basePath": "/api/v1",
     "paths": {
-        "/groups-create": {
+        "/group-create": {
             "post": {
                 "security": [
                     {
@@ -37,7 +37,14 @@
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -66,7 +73,7 @@
                 }
             }
         },
-        "/groups-delete": {
+        "/group-delete": {
             "delete": {
                 "security": [
                     {
@@ -86,7 +93,7 @@
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -115,7 +122,7 @@
                 }
             }
         },
-        "/groups-list": {
+        "/group-list": {
             "get": {
                 "security": [
                     {
@@ -135,7 +142,7 @@
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -184,7 +191,7 @@
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
@@ -194,7 +201,7 @@
                         },
                         "description": "Comma-seperated list of repository slugs",
                         "name": "repos",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -243,7 +250,7 @@
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
@@ -253,7 +260,7 @@
                         },
                         "description": "Comma-seperated list of repository slugs",
                         "name": "repos",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -302,7 +309,7 @@
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
@@ -312,7 +319,7 @@
                         },
                         "description": "Comma-seperated list of repository slugs",
                         "name": "repos",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -361,7 +368,7 @@
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -410,7 +417,7 @@
                         "type": "string",
                         "description": "Canonical **slug** of the GitHub team",
                         "name": "team",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],

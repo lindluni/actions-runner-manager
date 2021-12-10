@@ -29,7 +29,7 @@ definitions:
       time.Time:
         type: string
     type: object
-host: hostname
+host: localhost
 info:
   contact:
     email: lindluni@github.com
@@ -42,14 +42,19 @@ info:
   title: Action Runner Manager API
   version: 0.1.0
 paths:
-  /groups-create:
+  /group-create:
     post:
       description: Creates a new GitHub Action organization runner group named with
         the team slug
       parameters:
       - description: Canonical **slug** of the GitHub team
-        in: path
+        in: query
         name: team
+        required: true
+        type: string
+      - description: Authorization token
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
@@ -71,13 +76,13 @@ paths:
       summary: Create a new GitHub Action organization Runner Group
       tags:
       - Groups
-  /groups-delete:
+  /group-delete:
     delete:
       description: Deletes an existing GitHub Action organization runner group named
         with the team slug
       parameters:
       - description: Canonical **slug** of the GitHub team
-        in: path
+        in: query
         name: team
         required: true
         type: string
@@ -100,13 +105,13 @@ paths:
       summary: Deletes an existing GitHub Action organization Runner Group
       tags:
       - Groups
-  /groups-list:
+  /group-list:
     get:
       description: List all repositories and runners assigned to a GitHub Action organization
         runner group named with the team slug
       parameters:
       - description: Canonical **slug** of the GitHub team
-        in: path
+        in: query
         name: team
         required: true
         type: string
@@ -136,12 +141,12 @@ paths:
         named with the team slug
       parameters:
       - description: Canonical **slug** of the GitHub team
-        in: path
+        in: query
         name: team
         required: true
         type: string
       - description: Comma-seperated list of repository slugs
-        in: path
+        in: query
         items:
           type: string
         name: repos
@@ -173,12 +178,12 @@ paths:
         named with the team slug
       parameters:
       - description: Canonical **slug** of the GitHub team
-        in: path
+        in: query
         name: team
         required: true
         type: string
       - description: Comma-seperated list of repository slugs
-        in: path
+        in: query
         items:
           type: string
         name: repos
@@ -210,12 +215,12 @@ paths:
         organization named with the team slug with a new set of repositories
       parameters:
       - description: Canonical **slug** of the GitHub team
-        in: path
+        in: query
         name: team
         required: true
         type: string
       - description: Comma-seperated list of repository slugs
-        in: path
+        in: query
         items:
           type: string
         name: repos
@@ -247,7 +252,7 @@ paths:
         can be used to configure GitHub Action runners at the organization level
       parameters:
       - description: Canonical **slug** of the GitHub team
-        in: path
+        in: query
         name: team
         required: true
         type: string
@@ -276,7 +281,7 @@ paths:
         can be used remove a GitHub Action runners at the organization level
       parameters:
       - description: Canonical **slug** of the GitHub team
-        in: path
+        in: query
         name: team
         required: true
         type: string
