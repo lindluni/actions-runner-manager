@@ -230,7 +230,7 @@ func (m *Manager) DoReposRemove(c *gin.Context) {
 	for _, name := range repoNames {
 		repo, resp, err := m.RepositoriesClient.Get(ctx, m.Config.Org, name)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				c.JSON(resp.StatusCode, &JSONResultError{
 					Code:  resp.StatusCode,
 					Error: fmt.Sprintf("Repository %s not found", name),

@@ -198,9 +198,6 @@ func initLogger(config *apis.Config) *logrus.Logger {
 			MaxSize:    config.Logging.MaxSize,
 		}
 		logger.SetOutput(ioutil.Discard)
-		logger.SetFormatter(&logrus.TextFormatter{
-			FullTimestamp: true,
-		})
 		logger.AddHook(&writer.Hook{ // Send logs with level higher than warning to stderr
 			Writer: io.MultiWriter(os.Stderr, rotator),
 			LogLevels: []logrus.Level{
@@ -219,6 +216,10 @@ func initLogger(config *apis.Config) *logrus.Logger {
 		})
 
 	}
+	logger.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+		DisableColors: true,
+	})
 	logger.Debug("Logger initialized")
 	return logger
 }
