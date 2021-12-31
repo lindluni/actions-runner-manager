@@ -34,3 +34,10 @@ jobs:
       uses: actions/checkout@v2
     - name: Run Tests
       run: make tests
+      env:
+        MANAGER_APP_ID: ${{ secrets.MANAGER_APP_ID }}
+        MANAGER_APP_INSTALLATION_ID: ${{ secrets.MANAGER_APP_INSTALLATION_ID }}
+        MANAGER_APP_PRIVATE_KEY: ${{ secrets.MANAGER_APP_PRIVATE_KEY }}
+        MANAGER_ORG: ${{ secrets.MANAGER_ORG }}
+        MANAGER_USER: ${{ secrets.MANAGER_USER }}
+        MANAGER_ADMIN_PAT: ${{ secrets.MANAGER_ADMIN_PAT }}
