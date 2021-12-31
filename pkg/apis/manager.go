@@ -188,29 +188,29 @@ func LimitHandler(lmt *limiter.Limiter) gin.HandlerFunc {
 }
 
 func (m *Manager) verifyMaintainership(token, team, uuid string) (bool, error) {
-	m.Logger.WithField("uuid", uuid)
+	m.Logger.WithField("uuid", uuid).Info("Creating maintainership client")
 	client, user, err := m.CreateMaintainershipClient(token, uuid)
 	if err != nil {
 		return false, fmt.Errorf("failed retrieving user client: %w", err)
 	}
-	m.Logger.WithField("uuid", uuid)
+	m.Logger.WithField("uuid", uuid).Debug("Created maintainership client")
 
-	m.Logger.WithField("uuid", uuid)
+	m.Logger.WithField("uuid", uuid).Infof("Retrieving team: %s", team)
 	membership, resp, err := client.TeamsClient.GetTeamMembershipBySlug(context.Background(), m.Config.Org, team, user.GetLogin())
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return false, fmt.Errorf("unable to locate team %s", team)
 		}
 		return false, err
 	}
-	m.Logger.WithField("uuid", uuid)
+	m.Logger.WithField("uuid", uuid).Debug("Retrieved team %s", team)
 
 	return membership.GetRole() == "maintainer", nil
 }
 
 func (m *Manager) retrieveGroupID(name, uuid string) (*int64, int, error) {
 	ctx := context.Background()
-	m.Logger.WithField("uuid", uuid)
+	m.Logger.WithField("uuid", uuid).Info("Retrieving runner groups")
 	var groups []*github.RunnerGroup
 	opts := &github.ListOptions{PerPage: 100}
 	for {
@@ -224,15 +224,15 @@ func (m *Manager) retrieveGroupID(name, uuid string) (*int64, int, error) {
 		}
 		opts.Page = resp.NextPage
 	}
-	m.Logger.WithField("uuid", uuid)
+	m.Logger.WithField("uuid", uuid).Debug("Retrieved runner groups")
 
-	m.Logger.WithField("uuid", uuid)
+	m.Logger.WithField("uuid", uuid).Info("Searching for runner group")
 	for _, group := range groups {
 		if group.GetName() == name {
+			m.Logger.WithField("uuid", uuid).Debug("Found runner group")
 			return group.ID, http.StatusOK, nil
 		}
 	}
-	m.Logger.WithField("uuid", uuid)
 
 	return nil, http.StatusNotFound, fmt.Errorf("unable to locate runner group with name %s", name)
 }
