@@ -203,7 +203,7 @@ func (m *Manager) verifyMaintainership(token, team, uuid string) (bool, error) {
 		}
 		return false, err
 	}
-	m.Logger.WithField("uuid", uuid).Debug("Retrieved team %s", team)
+	m.Logger.WithField("uuid", uuid).Debugf("Retrieved team %s", team)
 
 	return membership.GetRole() == "maintainer", nil
 }
